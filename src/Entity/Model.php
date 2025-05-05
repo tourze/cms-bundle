@@ -2,14 +2,11 @@
 
 namespace CmsBundle\Entity;
 
-use AntdCpBundle\Builder\Action\WindowOpenAction;
-use App\Kernel;
 use CmsBundle\Repository\ModelRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\AdminArrayInterface;
@@ -25,7 +22,6 @@ use Tourze\EasyAdmin\Attribute\Action\Creatable;
 use Tourze\EasyAdmin\Attribute\Action\CurdAction;
 use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Action\ListAction;
 use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
 use Tourze\EasyAdmin\Attribute\Column\CopyColumn;
 use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
@@ -483,21 +479,6 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this->getEntities()->count();
     }
 
-    public function getDownloadUrl(): string
-    {
-        return Kernel::getInstance()->getContainer()->get(UrlGeneratorInterface::class)->generate('cms-import-template', [
-            'modelId' => $this->getId(),
-        ], UrlGeneratorInterface::ABSOLUTE_URL);
-    }
-
-    #[ListAction(title: '下载导入模板')]
-    public function renderDownloadTemplateAction(): WindowOpenAction
-    {
-        return WindowOpenAction::gen()
-            ->setLabel('下载导入模板')
-            ->setUrlColumn('downloadUrl');
-    }
-
     public function toSelectItem(): array
     {
         return [
@@ -532,7 +513,6 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
             'valid' => $this->isValid(),
             'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
             'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
-            'downloadUrl' => $this->getDownloadUrl(),
         ];
     }
 }

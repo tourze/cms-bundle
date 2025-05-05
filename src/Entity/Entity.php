@@ -4,7 +4,6 @@ namespace CmsBundle\Entity;
 
 use AntdCpBundle\Attribute\Method\ImportProcessor;
 use AntdCpBundle\Builder\Field\TreeSelectField;
-use AppBundle\Repository\UploadFileRepository;
 use Carbon\Carbon;
 use CmsBundle\Enum\EntityState;
 use CmsBundle\Enum\FieldType;
@@ -620,7 +619,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         PropertyAccessor $propertyAccessor,
         ModelRepository $modelRepository,
         LoggerInterface $logger,
-        UploadFileRepository $fileRepository,
     ): Entity {
         $entity = new Entity();
 
@@ -645,14 +643,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
                 foreach ($model->getAttributes() as $attribute) {
                     if ($attribute->getName() !== $tmp[1]) {
                         continue;
-                    }
-
-                    // 将富文本中的图片单独处理
-                    if (FieldType::RICH_TEXT === $attribute->getType()) {
-                        $file = $fileRepository->findOneBy(['fileName' => $v]);
-                        if ($file) {
-                            $v = "<img data-fileName=\"{$v}\" src=\"{$file->getUrl()}\"/>";
-                        }
                     }
 
                     if (FieldType::SINGLE_IMAGE === $attribute->getType()) {
