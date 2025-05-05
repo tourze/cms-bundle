@@ -2,10 +2,10 @@
 
 namespace CmsBundle\Entity;
 
-use AppBundle\Entity\BizUser;
 use CmsBundle\Repository\ShareLogRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
@@ -46,9 +46,9 @@ class ShareLog
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[ORM\ManyToOne(targetEntity: BizUser::class)]
+    #[ORM\ManyToOne(targetEntity: UserInterface::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
-    private ?BizUser $user = null;
+    private ?UserInterface $user = null;
 
     #[ORM\ManyToOne(targetEntity: Entity::class, inversedBy: 'shareLogs')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
@@ -99,12 +99,12 @@ class ShareLog
         return $this->updatedBy;
     }
 
-    public function getUser(): ?BizUser
+    public function getUser(): ?UserInterface
     {
         return $this->user;
     }
 
-    public function setUser(?BizUser $user): self
+    public function setUser(?UserInterface $user): self
     {
         $this->user = $user;
 

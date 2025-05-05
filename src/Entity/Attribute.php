@@ -401,7 +401,7 @@ class Attribute implements \Stringable
             $options = [];
             foreach ($lines as $line) {
                 $line = trim($line);
-                if (0 === mb_strlen($line)) {
+                if (0 === strlen($line)) {
                     continue;
                 }
 

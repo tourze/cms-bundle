@@ -36,7 +36,7 @@ class RoutingCondition implements RoutingConditionInterface
             $routes = $this->getRoutes();
             $item->set($routes);
             $item->tag(CacheHelper::getClassTags(RenderTemplate::class));
-            $item->expiresAfter(DAY_IN_SECONDS);
+            $item->expiresAfter(60 * 60 * 24);
 
             return $routes;
         });

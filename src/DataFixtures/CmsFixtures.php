@@ -2,8 +2,6 @@
 
 namespace CmsBundle\DataFixtures;
 
-use AppBundle\DataFixtures\UserFixture;
-use AppBundle\Repository\BizUserRepository;
 use Carbon\Carbon;
 use CmsBundle\Entity\Attribute;
 use CmsBundle\Entity\Category;
@@ -18,15 +16,13 @@ use CmsBundle\Repository\CategoryRepository;
 use CmsBundle\Repository\ModelRepository;
 use CmsBundle\Repository\TopicRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class CmsFixtures extends Fixture implements DependentFixtureInterface
+class CmsFixtures extends Fixture
 {
     public function __construct(
         private readonly CategoryRepository $categoryRepository,
         private readonly TopicRepository $topicRepository,
-        private readonly BizUserRepository $bizUserRepository,
         private readonly ModelRepository $modelRepository,
         private readonly AttributeRepository $attributeRepository,
     ) {
@@ -34,8 +30,6 @@ class CmsFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        $bizUser = $this->bizUserRepository->findOneBy(['username' => 'brand_operator']);
-
         $topic = $this->topicRepository->findOneBy(['title' => '运动专题']);
         if (!$topic) {
             $topic = new Topic();
@@ -141,13 +135,6 @@ class CmsFixtures extends Fixture implements DependentFixtureInterface
         return [
             ['篮球的魅力', '篮球的魅力', '<p>篮球（basketball），是以手为中心的身体对抗性体育运动，是奥运会核心比赛项目。1891年12月21日，由美国马萨诸塞州斯普林菲尔德基督教青年会训练学校体育教师詹姆士·奈史密斯发明。1896年，篮球运动传入中国天津。</p>'],
             ['足球的魅力', '足球的魅力', '<p>足球（Football[英]、 Soccer[美]）是一项以脚为主，控制和支配球，两支球队按照一定规则在同一块长方形球场上互相进行进攻、防守对抗的体育运动项目。因足球运动对抗性强、战术多变、参与人数多等特点，故被称为“世界第一运动”。</p>'],
-        ];
-    }
-
-    public function getDependencies(): array
-    {
-        return [
-            UserFixture::class,
         ];
     }
 }

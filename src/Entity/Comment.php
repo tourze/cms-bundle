@@ -2,10 +2,9 @@
 
 namespace CmsBundle\Entity;
 
-use AppBundle\Entity\BizUser;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use ForumBundle\Repository\ThreadCommentRepository;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
@@ -22,7 +21,7 @@ use Tourze\EasyAdmin\Attribute\Filter\Filterable;
 use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
 #[AsPermission(title: '评论')]
-#[ORM\Entity(repositoryClass: ThreadCommentRepository::class)]
+#[ORM\Entity]
 #[ORM\Table(name: 'cms_comment', options: ['comment' => '评论'])]
 class Comment implements AdminArrayInterface
 {
@@ -53,13 +52,13 @@ class Comment implements AdminArrayInterface
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
     private ?string $updatedFromIp = null;
 
-    #[ORM\ManyToOne(targetEntity: BizUser::class)]
+    #[ORM\ManyToOne(targetEntity: UserInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?BizUser $user = null;
+    private ?UserInterface $user = null;
 
-    #[ORM\ManyToOne(targetEntity: BizUser::class)]
+    #[ORM\ManyToOne(targetEntity: UserInterface::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?BizUser $replyUser = null;
+    private ?UserInterface $replyUser = null;
 
     #[ListColumn(title: '评论内容')]
     #[ORM\Column(type: Types::TEXT, options: ['comment' => '评论内容'])]
@@ -139,12 +138,12 @@ class Comment implements AdminArrayInterface
         return $this->updatedFromIp;
     }
 
-    public function getUser(): ?BizUser
+    public function getUser(): ?UserInterface
     {
         return $this->user;
     }
 
-    public function setUser(?BizUser $user): self
+    public function setUser(?UserInterface $user): self
     {
         $this->user = $user;
 
@@ -163,12 +162,12 @@ class Comment implements AdminArrayInterface
         return $this;
     }
 
-    public function getReplyUser(): ?BizUser
+    public function getReplyUser(): ?UserInterface
     {
         return $this->replyUser;
     }
 
-    public function setReplyUser(?BizUser $replyUser): void
+    public function setReplyUser(?UserInterface $replyUser): void
     {
         $this->replyUser = $replyUser;
     }
