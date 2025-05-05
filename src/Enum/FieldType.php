@@ -19,7 +19,6 @@ use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
 use Tourze\EnumExtra\Selectable;
 use Tourze\EnumExtra\SelectTrait;
-use Yiisoft\Json\Json;
 
 enum FieldType: string implements Labelable, Itemable, Selectable
 {
@@ -79,7 +78,7 @@ enum FieldType: string implements Labelable, Itemable, Selectable
             case self::SINGLE_FILE:
             case self::SINGLE_IMAGE:
             case self::MULTIPLE_IMAGE:
-                $data = Json::encode($data);
+                $data = json_encode($data);
                 break;
             case self::DECIMAL:
             case self::INTEGER:

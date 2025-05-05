@@ -19,7 +19,6 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Tourze\JsonRPC\Core\Exception\ApiException;
-use Yiisoft\Json\Json;
 
 class EntityFormFieldListener
 {
@@ -108,7 +107,7 @@ class EntityFormFieldListener
                 FieldType::MULTIPLE_IMAGE,
                 FieldType::SINGLE_FILE,
             ])) {
-                $data = Json::decode($data);
+                $data = json_decode($data, true);
             }
 
             if (in_array($value->getAttribute()->getType(), [FieldType::MULTIPLE_SELECT, FieldType::TAGS_SELECT])) {

@@ -21,7 +21,6 @@ use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Filter\Filterable;
 use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Yiisoft\Arrays\ArrayHelper;
-use Yiisoft\Json\Json;
 
 #[AsPermission(title: '数据')]
 #[ORM\Entity(repositoryClass: ValueRepository::class)]
@@ -215,7 +214,7 @@ class Value
 
         if (FieldType::SINGLE_IMAGE === $this->getAttribute()->getType()) {
             $data = $this->getData();
-            $data = Json::decode($data);
+            $data = json_decode($data, true);
 
             return isset($data[0]) ? $data[0]['url'] : null;
         }
@@ -226,7 +225,7 @@ class Value
                 return [];
             }
 
-            $data = Json::decode($data);
+            $data = json_decode($data, true);
             $res = [];
             if (!is_array($data)) {
                 return $res;
