@@ -2,18 +2,8 @@
 
 namespace CmsBundle\Enum;
 
-use AntdCpBundle\Builder\Field\BaseField;
-use AntdCpBundle\Builder\Field\BraftEditor;
-use AntdCpBundle\Builder\Field\FileSelectField;
-use AntdCpBundle\Builder\Field\FileUpload;
-use AntdCpBundle\Builder\Field\InputNumberField;
-use AntdCpBundle\Builder\Field\InputTextField;
-use AntdCpBundle\Builder\Field\LongTextField;
-use AntdCpBundle\Builder\Field\SelectField;
-use AntdCpBundle\Builder\Field\TimestampPickerField;
 use Carbon\Carbon;
 use CmsBundle\Entity\Attribute;
-use Doctrine\ORM\EntityManagerInterface;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;
@@ -92,102 +82,5 @@ enum FieldType: string implements Labelable, Itemable, Selectable
         }
 
         return (string) $data;
-    }
-
-    public static function getEditObjectMap(Attribute $attribute, EntityManagerInterface $entityManager): ?BaseField
-    {
-        $eavField = null;
-        switch ($attribute->getType()) {
-            case self::DATE:
-                $eavField = TimestampPickerField::gen()
-                    ->setInputProps([
-                        'showTime' => false,
-                        'format' => 'YYYY-MM-DD',
-                    ]);
-                break;
-            case self::DATE_TIME:
-                $eavField = TimestampPickerField::gen();
-                break;
-            case self::DECIMAL:
-            case self::INTEGER:
-                $eavField = InputNumberField::gen();
-                break;
-            case self::STRING:
-                $eavField = InputTextField::gen();
-                break;
-            case self::TEXT:
-            case self::FORMULA:
-                $eavField = LongTextField::gen();
-                break;
-            case self::RICH_TEXT:
-                $eavField = BraftEditor::gen();
-                break;
-            case self::SINGLE_IMAGE:
-                $eavField = FileSelectField::gen();
-                $inputProps = $eavField->getInputProps();
-                if ($attribute->getPlaceholder()) {
-                    $inputProps['uploadButtonText'] = $attribute->getPlaceholder();
-                }
-                $eavField->setInputProps($inputProps);
-                break;
-            case self::MULTIPLE_IMAGE:
-                $eavField = FileSelectField::gen()
-                    ->setInputProps([
-                        'limit' => $attribute->getLength(),
-                    ]);
-                break;
-            case self::SINGLE_FILE:
-                $eavField = FileUpload::gen()
-                    ->setInputProps([
-                        'limit' => 1,
-                        'uploadProps' => [
-                            'multiple' => false,
-                        ],
-                    ]);
-                break;
-            case self::SINGLE_SELECT:
-                $options = $attribute->genSelectOptions($entityManager);
-                $eavField = SelectField::gen()
-                    ->setInputProps([
-                        'defaultValue' => $attribute->getDefaultValue(),
-                        'options' => $options,
-                        // 'placeholder' => '如果填写SQL，列必须带有label和value',
-                        'style' => [
-                            'width' => '100%',
-                        ],
-                    ]);
-                break;
-            case self::MULTIPLE_SELECT:
-                $options = $attribute->genSelectOptions($entityManager);
-                $eavField = SelectField::gen()
-                    ->setInputProps([
-                        'options' => $options,
-                        'showSearch' => true,
-                        'mode' => 'multiple',
-                        'style' => [
-                            'width' => '100%',
-                        ],
-                    ]);
-                break;
-            case self::TAGS_SELECT:
-                $options = $attribute->genSelectOptions($entityManager);
-                $eavField = SelectField::gen()
-                    ->setInputProps([
-                        'options' => $options,
-                        'showSearch' => true,
-                        'mode' => 'tags',
-                        'tokenSeparators' => [','],
-                        'style' => [
-                            'width' => '100%',
-                        ],
-                    ]);
-                break;
-        }
-
-        if ($attribute->getRequired()) {
-            $eavField->setRules([['required' => true, 'message' => "请填写/选择{$attribute->getTitle()}"]]);
-        }
-
-        return $eavField;
     }
 }
