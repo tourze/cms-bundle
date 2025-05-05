@@ -1,0 +1,302 @@
+<?php
+
+namespace CmsBundle\Entity;
+
+use AntdCpBundle\Builder\Field\BannerSelector;
+use CmsBundle\Repository\TopicRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
+use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
+use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
+use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
+use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
+use Tourze\EasyAdmin\Attribute\Action\Creatable;
+use Tourze\EasyAdmin\Attribute\Action\Deletable;
+use Tourze\EasyAdmin\Attribute\Action\Editable;
+use Tourze\EasyAdmin\Attribute\Action\Listable;
+use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
+use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
+use Tourze\EasyAdmin\Attribute\Column\ListColumn;
+use Tourze\EasyAdmin\Attribute\Column\PictureColumn;
+use Tourze\EasyAdmin\Attribute\Field\FormField;
+use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
+use Tourze\EasyAdmin\Attribute\Filter\Filterable;
+use Tourze\EasyAdmin\Attribute\Filter\Keyword;
+use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
+
+#[AsPermission(title: '内容专题')]
+#[Listable]
+#[Deletable]
+#[Editable]
+#[Creatable]
+#[ORM\Entity(repositoryClass: TopicRepository::class)]
+#[ORM\Table(name: 'cms_topic', options: ['comment' => '内容专题表'])]
+class Topic implements \Stringable
+{
+    #[ListColumn(order: -1)]
+    #[ExportColumn]
+    #[Groups(['restful_read', 'api_tree', 'admin_curd', 'api_list'])]
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
+    private ?int $id = 0;
+
+    #[Groups(['admin_curd'])]
+    #[FormField]
+    #[Keyword]
+    #[ListColumn]
+    #[ORM\Column(type: Types::STRING, length: 120, unique: true, options: ['comment' => '名称'])]
+    private ?string $title = null;
+
+    #[Groups(['admin_curd'])]
+    #[FormField]
+    #[Keyword]
+    #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '描述'])]
+    private ?string $description = null;
+
+    #[ImagePickerField]
+    #[PictureColumn]
+    #[Groups(['admin_curd'])]
+    #[FormField]
+    #[ListColumn]
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
+    private ?string $thumb = null;
+
+    /**
+     * @BannerSelector()
+     */
+    #[Groups(['admin_curd'])]
+    #[FormField]
+    #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => 'BANNER'])]
+    private array $banners = [];
+
+    #[BoolColumn]
+    #[Groups(['admin_curd'])]
+    #[ListColumn]
+    #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否推荐'])]
+    private ?bool $recommend = null;
+
+    /**
+     * @var Collection<Entity>
+     */
+    #[ORM\ManyToMany(targetEntity: Entity::class, inversedBy: 'topics', fetch: 'EXTRA_LAZY')]
+    private Collection $entities;
+
+    #[Filterable]
+    #[IndexColumn]
+    #[ListColumn(order: 98, sorter: true)]
+    #[ExportColumn]
+    #[CreateTimeColumn]
+    #[Groups(['restful_read', 'admin_curd', 'restful_read'])]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
+    private ?\DateTimeInterface $createTime = null;
+
+    #[UpdateTimeColumn]
+    #[ListColumn(order: 99, sorter: true)]
+    #[Groups(['restful_read', 'admin_curd', 'restful_read'])]
+    #[Filterable]
+    #[ExportColumn]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
+    private ?\DateTimeInterface $updateTime = null;
+
+    #[CreatedByColumn]
+    #[Groups(['restful_read'])]
+    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
+    private ?string $createdBy = null;
+
+    #[UpdatedByColumn]
+    #[Groups(['restful_read'])]
+    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
+    private ?string $updatedBy = null;
+
+    #[CreateIpColumn]
+    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
+    private ?string $createdFromIp = null;
+
+    #[UpdateIpColumn]
+    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
+    private ?string $updatedFromIp = null;
+
+    public function __construct()
+    {
+        $this->entities = new ArrayCollection();
+    }
+
+    public function __toString(): string
+    {
+        if (!$this->getId()) {
+            return '';
+        }
+
+        return $this->getTitle();
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function setCreatedBy(?string $createdBy): self
+    {
+        $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    public function getCreatedBy(): ?string
+    {
+        return $this->createdBy;
+    }
+
+    public function setUpdatedBy(?string $updatedBy): self
+    {
+        $this->updatedBy = $updatedBy;
+
+        return $this;
+    }
+
+    public function getUpdatedBy(): ?string
+    {
+        return $this->updatedBy;
+    }
+
+    public function setCreatedFromIp(?string $createdFromIp): self
+    {
+        $this->createdFromIp = $createdFromIp;
+
+        return $this;
+    }
+
+    public function getCreatedFromIp(): ?string
+    {
+        return $this->createdFromIp;
+    }
+
+    public function setUpdatedFromIp(?string $updatedFromIp): self
+    {
+        $this->updatedFromIp = $updatedFromIp;
+
+        return $this;
+    }
+
+    public function getUpdatedFromIp(): ?string
+    {
+        return $this->updatedFromIp;
+    }
+
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    public function setTitle(string $title): self
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getThumb(): ?string
+    {
+        return $this->thumb;
+    }
+
+    public function setThumb(?string $thumb): self
+    {
+        $this->thumb = $thumb;
+
+        return $this;
+    }
+
+    public function getBanners(): ?array
+    {
+        return $this->banners;
+    }
+
+    public function setBanners(?array $banners): self
+    {
+        $this->banners = $banners;
+
+        return $this;
+    }
+
+    public function getRecommend(): ?bool
+    {
+        return $this->recommend;
+    }
+
+    public function setRecommend(bool $recommend): self
+    {
+        $this->recommend = $recommend;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Entity>
+     */
+    public function getEntities(): Collection
+    {
+        return $this->entities;
+    }
+
+    public function addEntity(Entity $entity): self
+    {
+        if (!$this->entities->contains($entity)) {
+            $this->entities[] = $entity;
+        }
+
+        return $this;
+    }
+
+    public function removeEntity(Entity $entity): self
+    {
+        $this->entities->removeElement($entity);
+
+        return $this;
+    }
+
+    #[ListColumn(order: 70, title: '文章数')]
+    public function getEntityCount(): int
+    {
+        return $this->getEntities()->count();
+    }
+
+    public function getCreateTime(): ?\DateTimeInterface
+    {
+        return $this->createTime;
+    }
+
+    public function setCreateTime(?\DateTimeInterface $createdAt): void
+    {
+        $this->createTime = $createdAt;
+    }
+
+    public function getUpdateTime(): ?\DateTimeInterface
+    {
+        return $this->updateTime;
+    }
+
+    public function setUpdateTime(?\DateTimeInterface $updateTime): void
+    {
+        $this->updateTime = $updateTime;
+    }
+}
