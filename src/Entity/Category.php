@@ -2,8 +2,6 @@
 
 namespace CmsBundle\Entity;
 
-use AntdCpBundle\Attribute\TreeView;
-use AntdCpBundle\Builder\Field\BannerSelector;
 use CmsBundle\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,6 +25,7 @@ use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
 use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
 use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Column\PictureColumn;
+use Tourze\EasyAdmin\Attribute\Column\TreeView;
 use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
 use Tourze\EasyAdmin\Attribute\Filter\Filterable;
@@ -116,9 +115,6 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
 
-    /**
-     * @BannerSelector()
-     */
     #[FormField]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => 'BANNER图'])]

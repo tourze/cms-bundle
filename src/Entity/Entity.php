@@ -2,19 +2,12 @@
 
 namespace CmsBundle\Entity;
 
-use AntdCpBundle\Attribute\Method\ImportProcessor;
-use AntdCpBundle\Builder\Field\TreeSelectField;
-use Carbon\Carbon;
 use CmsBundle\Enum\EntityState;
-use CmsBundle\Enum\FieldType;
 use CmsBundle\Repository\EntityRepository;
-use CmsBundle\Repository\ModelRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\AdminArrayInterface;
@@ -76,11 +69,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Model $model = null;
 
-    /**
-     * @TreeSelectField(treeModel=Category::class, multiple=true)
-     *
-     * @var Collection<Category>
-     */
     #[FormField(title: '目录')]
     #[ListColumn(title: '目录')]
     #[Filterable(label: '目录')]
@@ -611,92 +599,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         $this->endTime = $endTime;
 
         return $this;
-    }
-
-    #[ImportProcessor]
-    public function handleImportData(
-        array $row,
-        PropertyAccessor $propertyAccessor,
-        ModelRepository $modelRepository,
-        LoggerInterface $logger,
-    ): Entity {
-        $entity = new Entity();
-
-        $values = [];
-        foreach ($row as $k => $v) {
-            if (str_contains($k, ':')) {
-                // 有冒号，就是属性
-                $tmp = explode(':', $k);
-                $model = $modelRepository->findOneBy(['code' => $tmp[0]]);
-                if (!$model) {
-                    $logger->warning('CMS找不到模型', [
-                        'code' => $tmp[0],
-                    ]);
-                    continue;
-                }
-
-                if (!$entity->getModel()) {
-                    $entity->setModel($model);
-                }
-
-                /** @var Attribute $attribute */
-                foreach ($model->getAttributes() as $attribute) {
-                    if ($attribute->getName() !== $tmp[1]) {
-                        continue;
-                    }
-
-                    if (FieldType::SINGLE_IMAGE === $attribute->getType()) {
-                        $v = [
-                            [
-                                'id' => 0,
-                                'url' => $v,
-                                'name' => $v,
-                                'path' => $v,
-                                'fileName' => $v,
-                                'can_delete' => true,
-                            ],
-                        ];
-                    }
-
-                    // 命中到了
-                    $value = new Value();
-                    $value->setModel($model);
-                    $value->setAttribute($attribute);
-                    $value->setEntity($entity);
-                    $value->setRawData([
-                        'v' => $v,
-                    ]);
-                    $value->setData(FieldType::getStorableValue($attribute, $v));
-                    $values[] = $value;
-                }
-            } else {
-                // 没冒号，就是Entity的属性
-                if (in_array($k, ['publishTime', 'endTime'])) {
-                    $v = Carbon::parse($v);
-                }
-
-                if ('state' === $k) {
-                    $v = match ($v) {
-                        EntityState::PUBLISHED->getLabel() => EntityState::PUBLISHED,
-                        EntityState::REVOKED->getLabel() => EntityState::REVOKED,
-                        default => EntityState::DRAFT,
-                    };
-                }
-
-                $propertyAccessor->setValue($entity, $k, $v);
-            }
-        }
-
-        // 保存属性
-        if (!empty($values)) {
-            //            $logger->warning('批量设置Values', [
-            //                'entity' => $entity,
-            //                'values' => $values,
-            //            ]);
-            $propertyAccessor->setValue($entity, 'valueList', $values);
-        }
-
-        return $entity;
     }
 
     public function retrieveAdminArray(): array
