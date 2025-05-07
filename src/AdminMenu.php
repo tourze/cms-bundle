@@ -11,11 +11,10 @@ use CmsBundle\Entity\RenderTemplate;
 use CmsBundle\Entity\Tag;
 use CmsBundle\Entity\Topic;
 use Knp\Menu\ItemInterface;
-use Tourze\EasyAdminMenuBundle\Attribute\MenuProvider;
 use Tourze\EasyAdminMenuBundle\Service\LinkGeneratorInterface;
+use Tourze\EasyAdminMenuBundle\Service\MenuProviderInterface;
 
-#[MenuProvider]
-class AdminMenu
+class AdminMenu implements MenuProviderInterface
 {
     public function __construct(private readonly LinkGeneratorInterface $linkGenerator)
     {
