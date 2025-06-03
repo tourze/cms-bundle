@@ -162,6 +162,13 @@ class CmsBundleIntegrationTest extends KernelTestCase
         $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
         
         try {
+            // 先尝试删除现有的架构
+            $schemaTool->dropSchema($metadata);
+        } catch (\Exception $e) {
+            // 忽略删除错误，可能架构不存在
+        }
+        
+        try {
             $schemaTool->createSchema($metadata);
             $this->assertTrue(true, '数据库架构创建成功');
         } catch (\Exception $e) {

@@ -8,37 +8,34 @@ use Tourze\LockServiceBundle\Model\LockEntity;
 use Tourze\LockServiceBundle\Service\LockService;
 
 /**
- * 模拟EntityLockService
+ * 模拟实体锁服务
  */
 class MockEntityLockService extends EntityLockService
 {
     public function __construct(
-        EntityManagerInterface $entityManager,
-        ?LockService $lockService = null
+        private readonly EntityManagerInterface $entityManager,
+        private readonly LockService $lockService
     ) {
-        if ($lockService === null) {
-            $lockService = new MockLockService();
-        }
-        parent::__construct($entityManager, $lockService);
+        // 覆盖父类构造函数
     }
-    
+
     /**
-     * 锁定单个实体，简化版本
+     * 锁定单个实体，从数据库读取最新数据，然后执行回调
      */
     public function lockEntity(LockEntity $entity, callable $func): mixed
     {
-        // 简单地直接调用回调函数而不做锁定
-        return call_user_func_array($func, []);
+        // 在测试环境中直接执行回调，不进行实际加锁
+        return call_user_func($func);
     }
-    
+
     /**
-     * 锁定多个实体，简化版本
+     * 锁定多个实体，从数据库读取最新数据，然后执行回调
      *
      * @param LockEntity[] $entities
      */
     public function lockEntities(array $entities, callable $func): mixed
     {
-        // 简单地直接调用回调函数而不做锁定
-        return call_user_func_array($func, []);
+        // 在测试环境中直接执行回调，不进行实际加锁
+        return call_user_func($func);
     }
 } 

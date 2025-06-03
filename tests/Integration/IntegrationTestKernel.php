@@ -85,6 +85,9 @@ class IntegrationTestKernel extends BaseKernel
                 'enable_lazy_ghost_objects' => true,
                 'naming_strategy' => 'doctrine.orm.naming_strategy.underscore_number_aware',
                 'auto_mapping' => true,
+                'resolve_target_entities' => [
+                    'Symfony\Component\Security\Core\User\UserInterface' => 'CmsBundle\Tests\Integration\MockUser',
+                ],
                 'mappings' => [
                     'CmsBundle' => [
                         'is_bundle' => false,
@@ -92,6 +95,13 @@ class IntegrationTestKernel extends BaseKernel
                         'dir' => dirname(__DIR__, 2) . '/src/Entity',
                         'prefix' => 'CmsBundle\Entity',
                         'alias' => 'CmsBundle',
+                    ],
+                    'CmsBundleTest' => [
+                        'is_bundle' => false,
+                        'type' => 'attribute',
+                        'dir' => dirname(__DIR__, 1) . '/Integration',
+                        'prefix' => 'CmsBundle\Tests\Integration',
+                        'alias' => 'CmsBundleTest',
                     ],
                 ],
             ],
@@ -165,6 +175,10 @@ class IntegrationTestKernel extends BaseKernel
         $services->set('snc_redis.default', MockRedisClient::class)
             ->public();
             
+        // 添加 snc_redis.lock 服务来解决 RedisClusterStore 的依赖问题
+        $services->set('snc_redis.lock', MockRedisClient::class)
+            ->public();
+            
         // 设置doctrine.dbal.lock_connection别名
         $services->alias('doctrine.dbal.lock_connection', 'doctrine.dbal.default_connection')
             ->public();
@@ -232,6 +246,14 @@ class IntegrationTestKernel extends BaseKernel
             ->public();
             
         $services->alias('Tourze\JsonRPCSecurityBundle\Procedure\SecurableProcedure::getGrantService', GrantService::class)
+            ->public();
+
+        // 添加 CacheAdapter 相关服务
+        $services->set(\Psr\Cache\CacheItemPoolInterface::class, MockCacheAdapter::class)
+            ->public();
+            
+        // 为了向后兼容，也将 AdapterInterface 设置为同一个实现
+        $services->alias(\Symfony\Component\Cache\Adapter\AdapterInterface::class, \Psr\Cache\CacheItemPoolInterface::class)
             ->public();
     }
     
