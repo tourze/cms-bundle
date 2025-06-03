@@ -33,7 +33,7 @@
     "symfony/serializer": "^6.4",
     "symfony/yaml": "^6.4 || ^7.1",
     "tourze/arrayable": "0.0.*",
-    "tourze/doctrine-async-bundle": "^0.0.6",
+    "tourze/doctrine-async-bundle": "0.1.*",
     "tourze/doctrine-entity-checker-bundle": "~0.0.8",
     "tourze/doctrine-entity-lock-bundle": "0.0.*",
     "tourze/doctrine-helper": "0.0.*",
