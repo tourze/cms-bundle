@@ -4,13 +4,14 @@ namespace CmsBundle\Tests;
 
 use CmsBundle\AdminMenu;
 use Knp\Menu\ItemInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Tourze\EasyAdminMenuBundle\Service\LinkGeneratorInterface;
 
 class AdminMenuTest extends TestCase
 {
-    private ItemInterface $rootItem;
-    private LinkGeneratorInterface $linkGenerator;
+    private ItemInterface|MockObject $rootItem;
+    private LinkGeneratorInterface|MockObject $linkGenerator;
 
     protected function setUp(): void
     {
