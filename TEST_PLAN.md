@@ -44,6 +44,7 @@ $result = $procedure->execute();
 ```
 
 优点：
+
 - 简单直接，易于调试
 - 减少对外部依赖的需求
 - 可以精确控制测试条件
@@ -59,6 +60,7 @@ $result = $procedure->execute();
 ```
 
 优点：
+
 - 测试依赖注入是否正确配置
 - 验证服务可以从容器中解析
 
@@ -75,6 +77,7 @@ $result = $procedure->__invoke($request);
 ```
 
 优点：
+
 - 测试完整的调用流程，包括参数解析
 - 验证LockableProcedure的加锁逻辑
 
@@ -113,6 +116,7 @@ CmsBundle 提供了内容管理系统的核心功能，包括分类、模型和�
 | 测试类型 | 状态 | 完成测试类 | 备注 |
 |---------|------|-----------|------|
 | 单元测试 | 进行中 | AdminCreateCmsCategoryTest | 已完成Category创建Procedure的测试 |
+| 单元测试 | ✅ 完成 | AdminMenuTest | ✅ 修复原测试失败，增强测试覆盖，5个测试方法全部通过 |
 | 集成测试 | 进行中 | CmsBundleIntegrationTest | Bundle注册、服务注册、实体映射等基础功能 |
 
 ## 当前测试覆盖情况
@@ -122,6 +126,12 @@ CmsBundle 提供了内容管理系统的核心功能，包括分类、模型和�
 | Procedure 类 | 测试类 | 状态 |
 |-------------|-------|------|
 | AdminCreateCmsCategory | AdminCreateCmsCategoryTest | 完成 |
+
+### 菜单服务测试
+
+| 服务类 | 测试类 | 状态 | 测试场景 |
+|--------|-------|------|----------|
+| AdminMenu | AdminMenuTest | ✅ 完成 | ✅ 菜单创建测试 (当菜单不存在时)<br/>✅ 子菜单项添加测试 (7个项目)<br/>✅ 现有菜单项复用测试<br/>✅ LinkGenerator调用验证<br/>✅ 空URL处理测试 |
 
 ### 集成测试
 
@@ -137,4 +147,4 @@ CmsBundle 提供了内容管理系统的核心功能，包括分类、模型和�
 1. 完善所有 Procedure 的单元测试
 2. 增加 Repository 层的测试
 3. 增加 Service 层的测试
-4. 提高测试覆盖率 
+4. 提高测试覆盖率

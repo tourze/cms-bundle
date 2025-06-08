@@ -1,6 +1,6 @@
 <?php
 
-namespace CmsBundle\Tests\Unit\Service;
+namespace CmsBundle\Tests\Service;
 
 use CmsBundle\Entity\Attribute;
 use CmsBundle\Entity\Model;

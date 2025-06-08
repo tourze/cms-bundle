@@ -1,6 +1,6 @@
 <?php
 
-namespace CmsBundle\Tests\Unit\Service;
+namespace CmsBundle\Tests\Service;
 
 use Carbon\Carbon;
 use CmsBundle\Entity\Entity;

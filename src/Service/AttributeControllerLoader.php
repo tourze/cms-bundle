@@ -2,7 +2,6 @@
 
 namespace CmsBundle\Service;
 
-use CmsBundle\Controller\RenderController;
 use CmsBundle\Controller\SqlController;
 use Symfony\Bundle\FrameworkBundle\Routing\AttributeRouteControllerLoader;
 use Symfony\Component\Config\Loader\Loader;
@@ -34,7 +33,6 @@ class AttributeControllerLoader extends Loader implements RoutingAutoLoaderInter
     public function autoload(): RouteCollection
     {
         $collection = new RouteCollection();
-        $collection->addCollection($this->controllerLoader->load(RenderController::class));
         $collection->addCollection($this->controllerLoader->load(SqlController::class));
         return $collection;
     }

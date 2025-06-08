@@ -1,6 +1,6 @@
 <?php
 
-namespace CmsBundle\Tests\Unit\Entity;
+namespace CmsBundle\Tests\Entity;
 
 use CmsBundle\Entity\Category;
 use CmsBundle\Entity\Entity;

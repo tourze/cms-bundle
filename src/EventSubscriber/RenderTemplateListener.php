@@ -2,9 +2,9 @@
 
 namespace CmsBundle\EventSubscriber;
 
-use CmsBundle\Entity\RenderTemplate;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
+use Tourze\CmsTemplateBundle\Entity\RenderTemplate;
 
 #[AsEntityListener(event: Events::prePersist, method: 'prePersist', entity: RenderTemplate::class)]
 #[AsEntityListener(event: Events::preUpdate, method: 'preUpdate', entity: RenderTemplate::class)]

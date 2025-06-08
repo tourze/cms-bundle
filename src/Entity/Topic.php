@@ -2,7 +2,6 @@
 
 namespace CmsBundle\Entity;
 
-use AntdCpBundle\Builder\Field\BannerSelector;
 use CmsBundle\Repository\TopicRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -67,9 +66,6 @@ class Topic implements \Stringable
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
 
-    /**
-     * @BannerSelector()
-     */
     #[Groups(['admin_curd'])]
     #[FormField]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => 'BANNER'])]

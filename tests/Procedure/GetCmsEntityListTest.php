@@ -1,6 +1,6 @@
 <?php
 
-namespace CmsBundle\Tests\Unit\Procedure;
+namespace CmsBundle\Tests\Procedure;
 
 use CmsBundle\Entity\Entity;
 use CmsBundle\Entity\LikeLog;

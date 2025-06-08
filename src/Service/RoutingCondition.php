@@ -2,8 +2,6 @@
 
 namespace CmsBundle\Service;
 
-use CmsBundle\Entity\RenderTemplate;
-use CmsBundle\Repository\RenderTemplateRepository;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Routing\Attribute\AsRoutingConditionService;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,6 +11,8 @@ use Symfony\Component\Routing\Route;
 use Symfony\Component\Routing\RouteCollection;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
+use Tourze\CmsTemplateBundle\Entity\RenderTemplate;
+use Tourze\CmsTemplateBundle\Repository\RenderTemplateRepository;
 use Tourze\DoctrineHelper\CacheHelper;
 
 /**

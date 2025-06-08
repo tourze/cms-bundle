@@ -7,7 +7,6 @@ use CmsBundle\Entity\CollectLog;
 use CmsBundle\Entity\Entity;
 use CmsBundle\Entity\LikeLog;
 use CmsBundle\Entity\Model;
-use CmsBundle\Entity\RenderTemplate;
 use CmsBundle\Entity\Tag;
 use CmsBundle\Entity\Topic;
 use Knp\Menu\ItemInterface;
@@ -40,7 +39,6 @@ class AdminMenu implements MenuProviderInterface
         $item->getChild('内容中心')->addChild('目录管理')->setUri($this->linkGenerator->getCurdListPage(Category::class));
         $item->getChild('内容中心')->addChild('专题管理')->setUri($this->linkGenerator->getCurdListPage(Topic::class));
         $item->getChild('内容中心')->addChild('标签管理')->setUri($this->linkGenerator->getCurdListPage(Tag::class));
-        $item->getChild('内容中心')->addChild('渲染模板')->setUri($this->linkGenerator->getCurdListPage(RenderTemplate::class));
         $item->getChild('内容中心')->addChild('收藏日志')->setUri($this->linkGenerator->getCurdListPage(CollectLog::class));
         $item->getChild('内容中心')->addChild('点赞日志')->setUri($this->linkGenerator->getCurdListPage(LikeLog::class));
     }
