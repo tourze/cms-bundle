@@ -7,7 +7,7 @@ use CmsBundle\Enum\EntityState;
 use CmsBundle\Repository\EntityRepository;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Tourze\DoctrineAsyncBundle\Service\DoctrineService;
+use Tourze\DoctrineAsyncInsertBundle\Service\AsyncInsertService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
@@ -28,7 +28,7 @@ class ShareCmsEntity extends LockableProcedure
 
     public function __construct(
         private readonly EntityRepository $entityRepository,
-        private readonly DoctrineService $doctrineService,
+        private readonly AsyncInsertService $doctrineService,
         private readonly Security $security,
     ) {
     }
