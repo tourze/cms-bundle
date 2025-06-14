@@ -9,7 +9,7 @@ use CmsBundle\Repository\VisitStatRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Tourze\DoctrineEntityLockBundle\Service\EntityLockService;
-use Tourze\Symfony\Async\Attribute\Async;
+use Tourze\Symfony\AopAsyncBundle\Attribute\Async;
 
 class StatService
 {

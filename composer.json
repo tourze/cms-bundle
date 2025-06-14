@@ -53,7 +53,7 @@
     "tourze/json-rpc-log-bundle": "0.1.*",
     "tourze/json-rpc-paginator-bundle": "0.0.*",
     "tourze/lock-service-bundle": "0.1.*",
-    "tourze/symfony-async-bundle": "0.0.*",
+    "tourze/symfony-aop-async-bundle": "0.0.*",
     "tourze/symfony-routing-auto-loader-bundle": "0.0.*",
     "tourze/user-event-bundle": "0.0.*",
     "tourze/user-id-bundle": "0.1.*",
