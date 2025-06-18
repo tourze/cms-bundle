@@ -13,8 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
@@ -41,6 +40,7 @@ use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 #[ORM\UniqueConstraint(name: 'cms_category_idx_uniq', columns: ['title', 'parent_id'])]
 class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
 {
+    use TimestampableAware;
     #[ListColumn(order: -1)]
     #[ExportColumn]
     #[ORM\Id]
@@ -132,21 +132,6 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
     #[Assert\Type(type: ['numeric'])]
     private ?int $sortNumber = 0;
-
-    #[Filterable]
-    #[IndexColumn]
-    #[ListColumn(order: 98, sorter: true)]
-    #[ExportColumn]
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeInterface $createTime = null;
-
-    #[UpdateTimeColumn]
-    #[ListColumn(order: 99, sorter: true)]
-    #[Filterable]
-    #[ExportColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     public function __construct()
     {
@@ -428,29 +413,7 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
             ...$this->retrieveAdminArray(),
             'children' => $children,
         ];
-    }
-
-    public function getCreateTime(): ?\DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
-    public function setCreateTime(?\DateTimeInterface $createdAt): void
-    {
-        $this->createTime = $createdAt;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): void
-    {
-        $this->updateTime = $updateTime;
-    }
-
-    public function getSortNumber(): ?int
+    }public function getSortNumber(): ?int
     {
         return $this->sortNumber;
     }

@@ -8,11 +8,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
-use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EasyAdmin\Attribute\Action\Creatable;
@@ -25,7 +23,6 @@ use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Column\PictureColumn;
 use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
 use Tourze\EasyAdmin\Attribute\Filter\Keyword;
 use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
@@ -38,6 +35,7 @@ use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 #[ORM\Table(name: 'cms_topic', options: ['comment' => '内容专题表'])]
 class Topic implements \Stringable
 {
+    use TimestampableAware;
     #[ListColumn(order: -1)]
     #[ExportColumn]
     #[ORM\Id]
@@ -82,21 +80,6 @@ class Topic implements \Stringable
      */
     #[ORM\ManyToMany(targetEntity: Entity::class, inversedBy: 'topics', fetch: 'EXTRA_LAZY')]
     private Collection $entities;
-
-    #[Filterable]
-    #[IndexColumn]
-    #[ListColumn(order: 98, sorter: true)]
-    #[ExportColumn]
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeInterface $createTime = null;
-
-    #[UpdateTimeColumn]
-    #[ListColumn(order: 99, sorter: true)]
-    #[Filterable]
-    #[ExportColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     #[CreatedByColumn]
     #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
@@ -269,25 +252,4 @@ class Topic implements \Stringable
     public function getEntityCount(): int
     {
         return $this->getEntities()->count();
-    }
-
-    public function getCreateTime(): ?\DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
-    public function setCreateTime(?\DateTimeInterface $createdAt): void
-    {
-        $this->createTime = $createdAt;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): void
-    {
-        $this->updateTime = $updateTime;
-    }
-}
+    }}

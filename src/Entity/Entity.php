@@ -11,11 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\Arrayable\AdminArrayInterface;
-use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
@@ -24,7 +22,6 @@ use Tourze\EasyAdmin\Attribute\Action\Deletable;
 use Tourze\EasyAdmin\Attribute\Action\Editable;
 use Tourze\EasyAdmin\Attribute\Action\Importable;
 use Tourze\EasyAdmin\Attribute\Action\Listable;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
 use Tourze\EasyAdmin\Attribute\Column\ImportColumn;
 use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Field\FormField;
@@ -45,6 +42,7 @@ use Tourze\LockServiceBundle\Model\LockEntity;
 #[ORM\Entity(repositoryClass: EntityRepository::class)]
 class Entity implements \Stringable, AdminArrayInterface, LockEntity
 {
+    use TimestampableAware;
     #[Groups(['restful_read', 'admin_curd'])]
     #[ListColumn]
     #[ORM\Id]
@@ -160,21 +158,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'entity', targetEntity: Comment::class)]
     private Collection $comments;
-
-    #[Filterable]
-    #[IndexColumn]
-    #[ListColumn(order: 98, sorter: true)]
-    #[ExportColumn]
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeInterface $createTime = null;
-
-    #[UpdateTimeColumn]
-    #[ListColumn(order: 99, sorter: true)]
-    #[Filterable]
-    #[ExportColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     #[CreatedByColumn]
     #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
@@ -644,25 +627,4 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         }
 
         return $this;
-    }
-
-    public function getCreateTime(): ?\DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
-    public function setCreateTime(?\DateTimeInterface $createdAt): void
-    {
-        $this->createTime = $createdAt;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): void
-    {
-        $this->updateTime = $updateTime;
-    }
-}
+    }}
