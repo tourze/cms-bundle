@@ -115,7 +115,6 @@ class GetCmsEntityDetailTest extends TestCase
         $result = $this->procedure->execute();
 
         // 验证结果
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('id', $result);
         $this->assertEquals(123, $result['id']);
         $this->assertArrayHasKey('title', $result);
@@ -217,7 +216,6 @@ class GetCmsEntityDetailTest extends TestCase
         $result = $this->procedure->execute();
 
         // 验证结果
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('isLike', $result);
         $this->assertTrue($result['isLike']); // 用户已点赞
     }

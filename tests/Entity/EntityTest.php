@@ -265,7 +265,6 @@ class EntityTest extends TestCase
         $array = $this->entity->retrieveAdminArray();
 
         // 验证返回的数组结构
-        $this->assertIsArray($array);
         $this->assertArrayHasKey('title', $array);
         $this->assertEquals('测试文章', $array['title']);
         $this->assertArrayHasKey('state', $array);
@@ -297,12 +296,10 @@ class EntityTest extends TestCase
         $stats = $this->entity->renderRealStats();
 
         // 验证返回数组结构 - 这是一个包含统计信息的数组
-        $this->assertIsArray($stats);
         $this->assertCount(3, $stats); // 应该有3个统计项
 
         // 验证每个统计项的结构
         foreach ($stats as $stat) {
-            $this->assertIsArray($stat);
             $this->assertArrayHasKey('text', $stat);
             $this->assertArrayHasKey('fontStyle', $stat);
         }
@@ -320,7 +317,6 @@ class EntityTest extends TestCase
         $stats = $this->entity->getRealStats();
 
         // 验证返回数组结构
-        $this->assertIsArray($stats);
         $this->assertArrayHasKey('likeTotal', $stats);
         $this->assertArrayHasKey('collectTotal', $stats);
         $this->assertArrayHasKey('shareTotal', $stats);

@@ -151,7 +151,6 @@ class CategoryTest extends TestCase
         $array = $this->category->retrieveAdminArray();
 
         // 验证返回的数组结构
-        $this->assertIsArray($array);
         $this->assertArrayHasKey('title', $array);
         $this->assertEquals('测试分类', $array['title']);
         $this->assertArrayHasKey('description', $array);
