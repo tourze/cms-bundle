@@ -12,18 +12,12 @@ use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission(title: '评论')]
 #[ORM\Entity]
 #[ORM\Table(name: 'cms_comment', options: ['comment' => '评论'])]
 class Comment implements AdminArrayInterface
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
@@ -54,7 +48,6 @@ class Comment implements AdminArrayInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?UserInterface $replyUser = null;
 
-    #[ListColumn(title: '评论内容')]
     #[ORM\Column(type: Types::TEXT, options: ['comment' => '评论内容'])]
     private ?string $content = null;
 

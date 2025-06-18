@@ -13,65 +13,40 @@ use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
 use Tourze\EasyAdmin\Attribute\Action\Listable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Column\PictureColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission(title: '内容专题')]
 #[Listable]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: TopicRepository::class)]
 #[ORM\Table(name: 'cms_topic', options: ['comment' => '内容专题表'])]
 class Topic implements \Stringable
 {
     use TimestampableAware;
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
     #[Groups(['admin_curd'])]
-    #[FormField]
-    #[Keyword]
-    #[ListColumn]
     #[ORM\Column(type: Types::STRING, length: 120, unique: true, options: ['comment' => '名称'])]
     private ?string $title = null;
 
     #[Groups(['admin_curd'])]
-    #[FormField]
-    #[Keyword]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '描述'])]
     private ?string $description = null;
 
     #[ImagePickerField]
     #[PictureColumn]
     #[Groups(['admin_curd'])]
-    #[FormField]
-    #[ListColumn]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
 
     #[Groups(['admin_curd'])]
-    #[FormField]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => 'BANNER'])]
     private array $banners = [];
 
-    #[BoolColumn]
     #[Groups(['admin_curd'])]
-    #[ListColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否推荐'])]
     private ?bool $recommend = null;
 
@@ -248,7 +223,6 @@ class Topic implements \Stringable
         return $this;
     }
 
-    #[ListColumn(order: 70, title: '文章数')]
     public function getEntityCount(): int
     {
         return $this->getEntities()->count();

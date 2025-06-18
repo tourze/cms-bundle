@@ -17,25 +17,14 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
 use Tourze\EasyAdmin\Attribute\Action\Importable;
 use Tourze\EasyAdmin\Attribute\Action\Listable;
 use Tourze\EasyAdmin\Attribute\Column\ImportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\LinkageField;
 use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\LockServiceBundle\Model\LockEntity;
 
-#[AsPermission(title: '文章管理')]
-#[Deletable]
-#[Editable]
 #[Listable(actionWidth: 150)]
-#[Creatable]
 #[Importable(generateTemplate: false, featureKey: 'CMS_ENTITY_IMPORTABLE')]
 #[BatchDeletable]
 #[ORM\Table(name: 'cms_entity', options: ['comment' => '文章管理表'])]
@@ -44,31 +33,23 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
 {
     use TimestampableAware;
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '文章ID'])]
     private ?int $id = 0;
 
-    #[FormField]
-    #[Keyword]
     #[ImportColumn]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '标题'])]
     private string $title;
 
-    #[FormField(title: '模型')]
     #[LinkageField]
     #[Filterable(label: '模型')]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn(title: '模型')]
     #[ORM\ManyToOne(targetEntity: Model::class, fetch: 'EXTRA_LAZY', inversedBy: 'entities')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Model $model = null;
 
-    #[FormField(title: '目录')]
-    #[ListColumn(title: '目录')]
     #[Filterable(label: '目录')]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'entities', fetch: 'EXTRA_LAZY')]
@@ -77,17 +58,13 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     /**
      * @var Collection<Tag>
      */
-    #[FormField(title: '标签')]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ListColumn(title: '标签')]
     #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'entities', fetch: 'EXTRA_LAZY')]
     private Collection $tags;
 
     /**
      * @var Collection<Topic>
      */
-    #[FormField(title: '专题')]
-    #[ListColumn(title: '专题')]
     #[Groups(['admin_curd'])]
     #[ORM\ManyToMany(targetEntity: Topic::class, mappedBy: 'entities', fetch: 'EXTRA_LAZY')]
     private Collection $topics;
@@ -99,29 +76,21 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     #[ORM\OneToMany(mappedBy: 'entity', targetEntity: Value::class, cascade: ['persist'], fetch: 'EXTRA_LAZY', orphanRemoval: true, indexBy: 'attribute_id')]
     private Collection $valueList;
 
-    #[FormField(span: 10)]
     #[ImportColumn]
-    #[ListColumn]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '发布时间'])]
     private ?\DateTimeInterface $publishTime = null;
 
-    #[FormField(span: 10)]
     #[ImportColumn]
-    #[ListColumn]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '结束时间'])]
     private ?\DateTimeInterface $endTime = null;
 
-    #[FormField(span: 6)]
     #[ImportColumn]
-    #[ListColumn]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 32, enumType: EntityState::class, options: ['comment' => '状态'])]
     private EntityState $state;
 
-    #[FormField(title: '排序')]
-    #[ListColumn(sorter: true)]
     #[Groups(['admin_curd'])]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '排序'])]
     private ?int $sortNumber = null;
@@ -510,7 +479,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     /**
      * @return array[]
      */
-    #[ListColumn(order: 4, title: '统计')]
     public function renderRealStats(): array
     {
         return [

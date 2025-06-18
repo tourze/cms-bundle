@@ -8,19 +8,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission(title: '访问统计')]
 #[ORM\Entity(repositoryClass: VisitStatRepository::class)]
 #[ORM\Table(name: 'cms_visit_stat', options: ['comment' => '访问统计表'])]
 #[ORM\UniqueConstraint(name: 'cms_stat_unique_entity_date', columns: ['entity_id', 'date'])]
 class VisitStat
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]

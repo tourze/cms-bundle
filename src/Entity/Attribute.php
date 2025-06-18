@@ -16,28 +16,13 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\EnumExtra\Selectable;
 
-#[AsPermission(title: '字段属性')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Table(name: 'cms_attribute', options: ['comment' => 'cms属性表'])]
 #[ORM\Entity(repositoryClass: AttributeRepository::class)]
 class Attribute implements \Stringable
 {
     use TimestampableAware;
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
@@ -59,12 +44,9 @@ class Attribute implements \Stringable
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
     private ?string $updatedFromIp = null;
 
-    #[BoolColumn]
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
-    #[ListColumn(order: 97)]
-    #[FormField(order: 97)]
     private ?bool $valid = false;
 
     #[Ignore]
@@ -73,75 +55,52 @@ class Attribute implements \Stringable
     private ?Model $model = null;
 
     #[TrackColumn]
-    #[Keyword]
-    #[FormField(span: 8)]
-    #[ListColumn]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '英文名'])]
     private ?string $name = null;
 
     #[TrackColumn]
-    #[FormField(span: 8)]
-    #[Keyword]
-    #[ListColumn]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '中文名'])]
     private ?string $title = null;
 
     #[TrackColumn]
-    #[FormField(span: 8)]
-    #[ListColumn]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 32, enumType: FieldType::class, options: ['comment' => '数据类型'])]
     private FieldType $type;
 
     #[TrackColumn]
-    #[FormField]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '默认值'])]
     private ?string $defaultValue = null;
 
     #[TrackColumn]
-    #[FormField(span: 8)]
-    #[ListColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否必填'])]
     private ?bool $required = null;
 
     #[TrackColumn]
-    #[FormField(span: 8)]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '数据长度'])]
     private ?int $length = null;
 
     #[TrackColumn]
-    #[FormField(span: 8)]
-    #[ListColumn]
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 24, 'comment' => '编辑宽度'])]
     private ?int $span = null;
 
     #[TrackColumn]
-    #[FormField(span: 8)]
-    #[ListColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否可搜索'])]
     private ?bool $searchable = false;
 
     #[TrackColumn]
-    #[FormField(span: 8)]
-    #[ListColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '支持导入'])]
     private ?bool $importable = false;
 
     #[TrackColumn]
-    #[FormField(span: 8)]
-    #[ListColumn(sorter: true)]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '排序'])]
     private ?int $displayOrder = 0;
 
     #[TrackColumn]
-    #[FormField]
-    #[ListColumn(sorter: true)]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '配置'])]
     private ?string $config = null;
 
-    #[FormField]
     #[ORM\Column(length: 200, nullable: true, options: ['comment' => '占位提示文本'])]
     private ?string $placeholder = null;
 

@@ -15,35 +15,23 @@ use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission(title: '点赞记录')]
-#[Deletable]
 #[BatchDeletable]
 #[ORM\Entity(repositoryClass: LikeLogRepository::class)]
 #[ORM\Table(name: 'cms_like_log', options: ['comment' => '点赞记录表'])]
 #[ORM\UniqueConstraint(name: 'cms_like_log_idx_uniq', columns: ['user_id', 'entity_id'])]
 class LikeLog
 {
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[ListColumn(title: '用户')]
     #[ORM\ManyToOne(targetEntity: UserInterface::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?UserInterface $user = null;
 
-    #[ListColumn(title: '文章')]
     #[ORM\ManyToOne(targetEntity: Entity::class, inversedBy: 'likeLogs')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Entity $entity = null;
@@ -56,12 +44,9 @@ class LikeLog
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
     private ?string $updatedFromIp = null;
 
-    #[BoolColumn]
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
-    #[ListColumn(order: 97)]
-    #[FormField(order: 97)]
     private ?bool $valid = false;
 
     #[CreatedByColumn]

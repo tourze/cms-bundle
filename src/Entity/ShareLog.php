@@ -13,21 +13,15 @@ use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
 /**
  * 一个人是可能分享多次的，所以这里会有多条记录。
  * 一般来说，分享记录存就行了，也不用区分状态啥的吧。
  */
-#[AsPermission(title: '分享记录')]
 #[ORM\Entity(repositoryClass: ShareLogRepository::class, readOnly: true)]
 #[ORM\Table(name: 'cms_share_log', options: ['comment' => '分析记录表'])]
 class ShareLog
 {
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
@@ -51,8 +45,6 @@ class ShareLog
     private ?Entity $entity = null;
 
     #[IndexColumn]
-    #[ListColumn(order: 98, sorter: true)]
-    #[ExportColumn]
     #[CreateTimeColumn]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
     private ?\DateTimeInterface $createTime = null;

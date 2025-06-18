@@ -17,23 +17,10 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
 use Tourze\EasyAdmin\Attribute\Column\PictureColumn;
 use Tourze\EasyAdmin\Attribute\Column\TreeView;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
 use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[Deletable]
-#[Editable]
-#[Creatable]
-#[AsPermission(title: '目录')]
 #[TreeView(dataModel: Category::class, targetAttribute: 'parent')]
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 #[ORM\Table(name: 'cms_category', options: ['comment' => 'cms种类(类别)'])]
@@ -41,8 +28,6 @@ use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
 {
     use TimestampableAware;
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
@@ -56,12 +41,9 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
     #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
-    #[BoolColumn]
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
-    #[ListColumn(order: 97)]
-    #[FormField(order: 97)]
     private ?bool $valid = false;
 
     #[Ignore]
@@ -78,8 +60,6 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
     #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Category::class)]
     private Collection $children;
 
-    #[FormField(title: '模型', span: 12)]
-    #[ListColumn(title: '模型')]
     #[Groups(['restful_read'])]
     #[ORM\ManyToOne(targetEntity: Model::class, inversedBy: 'categories')]
     private ?Model $model = null;
@@ -91,33 +71,24 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
     #[ORM\ManyToMany(targetEntity: Entity::class, mappedBy: 'categories', fetch: 'EXTRA_LAZY')]
     private Collection $entities;
 
-    #[FormField(span: 12)]
-    #[Filterable]
-    #[ListColumn]
     #[Groups(['restful_read', 'api_tree'])]
     #[ORM\Column(type: Types::STRING, length: 60, options: ['comment' => '标题'])]
     private ?string $title = '';
 
-    #[FormField]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '描述'])]
     private ?string $description = null;
 
     #[ImagePickerField]
     #[PictureColumn]
-    #[FormField]
-    #[ListColumn]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
 
-    #[FormField]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => 'BANNER图'])]
     private array $banners = [];
 
-    #[FormField]
-    #[ListColumn]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '热门关键词'])]
     private array $hotKeywords = [];
@@ -127,8 +98,6 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
      */
     #[IndexColumn]
     #[Groups(['admin_curd', 'api_tree', 'restful_read', 'restful_write'])]
-    #[FormField]
-    #[ListColumn(order: 95, sorter: true)]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
     #[Assert\Type(type: ['numeric'])]
     private ?int $sortNumber = 0;

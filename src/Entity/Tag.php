@@ -16,36 +16,18 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\BoolColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission(title: '内容标签')]
-#[Deletable]
-#[Editable]
-#[Creatable]
 #[ORM\Entity(repositoryClass: TagRepository::class)]
 #[ORM\Table(name: 'cms_tag', options: ['comment' => '内容标签表'])]
 class Tag implements \Stringable
 {
     use TimestampableAware;
-    #[ListColumn(order: -1)]
-    #[ExportColumn]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
-    #[FormField]
-    #[Filterable]
     #[Groups(['restful_read'])]
-    #[ListColumn]
     #[ORM\Column(type: Types::STRING, length: 60, unique: true, options: ['comment' => '标签名'])]
     private ?string $name = null;
 
@@ -59,12 +41,9 @@ class Tag implements \Stringable
     #[ORM\ManyToOne(inversedBy: 'tags')]
     private ?TagGroup $groups = null;
 
-    #[BoolColumn]
     #[IndexColumn]
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
-    #[ListColumn(order: 97)]
-    #[FormField(order: 97)]
     private ?bool $valid = false;
 
     #[CreatedByColumn]
@@ -198,7 +177,6 @@ class Tag implements \Stringable
         return $this;
     }
 
-    #[ListColumn(title: '文章数')]
     public function renderEntityCount(): int
     {
         return $this->getEntities()->count();

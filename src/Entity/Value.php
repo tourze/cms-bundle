@@ -14,20 +14,14 @@ use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Yiisoft\Arrays\ArrayHelper;
 
-#[AsPermission(title: '数据')]
 #[ORM\Entity(repositoryClass: ValueRepository::class)]
 #[ORM\Table(name: 'cms_value', options: ['comment' => 'cms数据表'])]
 #[ORM\UniqueConstraint(name: 'cms_value_idx_uniq', columns: ['model_id', 'attribute_id', 'entity_id'])]
 class Value
 {
     use TimestampableAware;
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
