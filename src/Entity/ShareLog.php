@@ -6,11 +6,10 @@ use CmsBundle\Repository\ShareLogRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\CreateTimeAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 
@@ -22,6 +21,8 @@ use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 #[ORM\Table(name: 'cms_share_log', options: ['comment' => '分析记录表'])]
 class ShareLog
 {
+    use CreateTimeAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
@@ -43,11 +44,6 @@ class ShareLog
     #[ORM\ManyToOne(targetEntity: Entity::class, inversedBy: 'shareLogs')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Entity $entity = null;
-
-    #[IndexColumn]
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeInterface $createTime = null;
 
     #[CreateIpColumn]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
@@ -108,18 +104,6 @@ class ShareLog
         $this->entity = $entity;
 
         return $this;
-    }
-
-    public function setCreateTime(?\DateTimeInterface $createdAt): self
-    {
-        $this->createTime = $createdAt;
-
-        return $this;
-    }
-
-    public function getCreateTime(): ?\DateTimeInterface
-    {
-        return $this->createTime;
     }
 
     public function setCreatedFromIp(?string $createdFromIp): self
