@@ -2,7 +2,7 @@
 
 namespace CmsBundle\EventSubscriber;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use CmsBundle\Entity\Entity;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
@@ -27,12 +27,12 @@ class EntityListener
      */
     private function ensureSameAccount(Entity $object): void
     {
-        if (!$object->getPublishTime() || !$object->getEndTime()) {
+        if ($object->getPublishTime() === null || $object->getEndTime() === null) {
             return;
         }
 
-        $startTime = Carbon::parse($object->getPublishTime());
-        $endTime = Carbon::parse($object->getEndTime());
+        $startTime = CarbonImmutable::parse($object->getPublishTime());
+        $endTime = CarbonImmutable::parse($object->getEndTime());
         if ($startTime->greaterThan($endTime)) {
             throw new ApiException('发布时间不应该大于结束时间');
         }

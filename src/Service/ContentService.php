@@ -20,15 +20,15 @@ class ContentService
      */
     public function searchByKeyword(QueryBuilder $queryBuilder, string $keyword, ?Model $model = null): void
     {
-        if (!$model) {
+        if ($model === null) {
             $models = $this->modelRepository->findBy(['valid' => true]);
         } else {
             $models = [$model];
         }
 
         $searchableAttributes = [];
-        foreach ($models as $model) {
-            foreach ($model->getAttributes() as $attribute) {
+        foreach ($models as $mdl) {
+            foreach ($mdl->getAttributes() as $attribute) {
                 if (!$attribute->getSearchable()) {
                     continue;
                 }
@@ -44,7 +44,7 @@ class ContentService
         // SELECT IDENTITY(v.entity) FROM Value AS v WHERE v.attribute in [:attribute] AND v.data LIKE '%TEST%'
         $subQuery = $this->valueRepository->createQueryBuilder('v');
         $subQuery->select('IDENTITY(v.entity)');
-        $subQuery->Where(
+        $subQuery->where(
             $subQuery->expr()->in(
                 'v.attribute',
                 $searchableAttributes

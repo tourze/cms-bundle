@@ -15,31 +15,19 @@ use Tourze\Arrayable\ApiArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Column\PictureColumn;
-use Tourze\EasyAdmin\Attribute\Column\TreeView;
-use Tourze\EasyAdmin\Attribute\Field\ImagePickerField;
 
-#[TreeView(dataModel: Category::class, targetAttribute: 'parent')]
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 #[ORM\Table(name: 'cms_category', options: ['comment' => 'cms种类(类别)'])]
 #[ORM\UniqueConstraint(name: 'cms_category_idx_uniq', columns: ['title', 'parent_id'])]
 class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
 {
     use TimestampableAware;
+    use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
-
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     #[IndexColumn]
     #[TrackColumn]
@@ -73,14 +61,12 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
 
     #[Groups(['restful_read', 'api_tree'])]
     #[ORM\Column(type: Types::STRING, length: 60, options: ['comment' => '标题'])]
-    private ?string $title = '';
+    private string $title = '';
 
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '描述'])]
     private ?string $description = null;
 
-    #[ImagePickerField]
-    #[PictureColumn]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
@@ -93,9 +79,6 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '热门关键词'])]
     private array $hotKeywords = [];
 
-    /**
-     * order值大的排序靠前。有效的值范围是[0, 2^32].
-     */
     #[IndexColumn]
     #[Groups(['admin_curd', 'api_tree', 'restful_read', 'restful_write'])]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
@@ -110,7 +93,7 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if ($this->getId() === null || $this->getId() === 0) {
             return '';
         }
 
@@ -321,13 +304,13 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
             'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
         ];
 
-        if ($this->getChildren()) {
+        if ($this->getChildren()->count() > 0) {
             foreach ($this->getChildren() as $child) {
                 $res['children'][] = $child->getDataArray();
             }
         }
 
-        if ($this->getModel()) {
+        if ($this->getModel() !== null) {
             $res['model'] = $this->getModel()->getDataArray();
 
             return $res;
@@ -371,7 +354,7 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
     public function retrieveAdminTreeArray(): array
     {
         $children = null;
-        if ($this->getChildren()->count() > 0) {
+        if ($this->getChildren() !== null && $this->getChildren()->count() > 0) {
             $children = [];
             foreach ($this->getChildren() as $child) {
                 $children[] = $child->retrieveAdminTreeArray();

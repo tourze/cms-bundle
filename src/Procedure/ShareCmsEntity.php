@@ -46,7 +46,7 @@ class ShareCmsEntity extends LockableProcedure
             'id' => $this->entityId,
             'state' => EntityState::PUBLISHED,
         ]);
-        if (!$entity) {
+        if ($entity === null) {
             throw new ApiException('找不到文章');
         }
 

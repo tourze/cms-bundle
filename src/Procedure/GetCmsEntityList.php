@@ -60,7 +60,7 @@ class GetCmsEntityList extends BaseProcedure
             ->addOrderBy('a.id', Criteria::DESC);
 
         // 查找指定目录
-        if ($this->categoryId) {
+        if ($this->categoryId !== null) {
             $categories = $this->categoryRepository->findBy(['id' => $this->categoryId]);
             $qb->innerJoin('a.categories', 'c');
             $qb->andWhere('c.id IN (:categories)');
@@ -72,7 +72,7 @@ class GetCmsEntityList extends BaseProcedure
         }
 
         // 查找指定模型
-        if ($this->modelCode) {
+        if ($this->modelCode !== null) {
             $models = $this->modelRepository->findBy(['code' => $this->modelCode]);
             $qb->innerJoin('a.model', 'm');
             $qb->andWhere('m.id IN (:models)');

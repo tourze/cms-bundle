@@ -8,7 +8,6 @@ use CmsBundle\Repository\ModelRepository;
 use CmsBundle\Repository\ValueRepository;
 use CmsBundle\Service\ContentService;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr;
 use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\Query\Expr\Func;
@@ -23,7 +22,6 @@ class ContentServiceTest extends TestCase
     private ValueRepository|MockObject $valueRepository;
     private ModelRepository|MockObject $modelRepository;
     private QueryBuilder|MockObject $queryBuilder;
-    private EntityManagerInterface|MockObject $entityManager;
 
     protected function setUp(): void
     {
@@ -34,9 +32,6 @@ class ContentServiceTest extends TestCase
             $this->valueRepository,
             $this->modelRepository
         );
-
-        // 模拟EntityManager
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
 
         // 创建QueryBuilder实例
         $this->queryBuilder = $this->createMock(QueryBuilder::class);
@@ -88,7 +83,7 @@ class ContentServiceTest extends TestCase
         // 配置子查询构建器方法链
         $subQueryBuilder->method('expr')->willReturn($expr);
         $subQueryBuilder->method('select')->with('IDENTITY(v.entity)')->willReturnSelf();
-        $subQueryBuilder->method('Where')->willReturnSelf();
+        $subQueryBuilder->method('where')->willReturnSelf();
         $subQueryBuilder->method('andWhere')->willReturnSelf();
         $subQueryBuilder->method('getDQL')->willReturn('SUBQUERY_DQL');
 
@@ -161,7 +156,7 @@ class ContentServiceTest extends TestCase
         // 配置子查询构建器方法链
         $subQueryBuilder->method('expr')->willReturn($expr);
         $subQueryBuilder->method('select')->with('IDENTITY(v.entity)')->willReturnSelf();
-        $subQueryBuilder->method('Where')->willReturnSelf();
+        $subQueryBuilder->method('where')->willReturnSelf();
         $subQueryBuilder->method('andWhere')->willReturnSelf();
         $subQueryBuilder->method('getDQL')->willReturn('SUBQUERY_DQL');
 
@@ -263,7 +258,7 @@ class ContentServiceTest extends TestCase
         // 配置子查询构建器方法链
         $subQueryBuilder->method('expr')->willReturn($expr);
         $subQueryBuilder->method('select')->willReturnSelf();
-        $subQueryBuilder->method('Where')->willReturnSelf();
+        $subQueryBuilder->method('where')->willReturnSelf();
         $subQueryBuilder->method('andWhere')->willReturnSelf();
         $subQueryBuilder->method('getDQL')->willReturn('SUBQUERY_DQL');
 

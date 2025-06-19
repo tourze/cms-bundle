@@ -45,7 +45,7 @@ class CmsExtension extends AbstractExtension
     public function getCmsEntityList(string $modelCode, int $limit = 20, int $offset = 0): array
     {
         $model = $this->modelRepository->findOneBy(['code' => $modelCode]);
-        if (!$model) {
+        if ($model === null) {
             throw new \LogicException('找不到指定CMS模型');
         }
 

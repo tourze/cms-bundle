@@ -45,7 +45,7 @@ class CollectCmsEntity extends LockableProcedure
             'id' => $this->entityId,
             'state' => EntityState::PUBLISHED,
         ]);
-        if (!$entity) {
+        if ($entity === null) {
             throw new ApiException('找不到文章');
         }
 
@@ -53,7 +53,7 @@ class CollectCmsEntity extends LockableProcedure
             'entity' => $entity,
             'user' => $this->security->getUser(),
         ]);
-        if (!$log) {
+        if ($log === null) {
             $log = new CollectLog();
             $log->setEntity($entity);
             $log->setUser($this->security->getUser());

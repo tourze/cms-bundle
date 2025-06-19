@@ -12,12 +12,12 @@ use Symfony\Component\Routing\Attribute\Route;
 class SqlController extends AbstractController
 {
     #[Route('/cms-model-sql/{code}', name: 'cms-model-sql')]
-    public function main(string $code, ModelRepository $modelRepository, Connection $connection): Response
+    public function __invoke(string $code, ModelRepository $modelRepository, Connection $connection): Response
     {
         $model = $modelRepository->findOneBy([
             'code' => $code,
         ]);
-        if (!$model) {
+        if ($model === null) {
             throw new NotFoundHttpException('找不到模型数据');
         }
 

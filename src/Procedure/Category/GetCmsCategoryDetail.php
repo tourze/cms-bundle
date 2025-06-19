@@ -31,7 +31,7 @@ class GetCmsCategoryDetail extends BaseProcedure
             'id' => $this->categoryId,
             'valid' => true,
         ]);
-        if (!$category) {
+        if ($category === null) {
             throw new ApiException('找不到指定目录');
         }
 

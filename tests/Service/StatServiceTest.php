@@ -2,7 +2,7 @@
 
 namespace CmsBundle\Tests\Service;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use CmsBundle\Entity\Entity;
 use CmsBundle\Entity\VisitStat;
 use CmsBundle\Repository\VisitStatRepository;
@@ -46,7 +46,7 @@ class StatServiceTest extends TestCase
         $entity->method('getId')->willReturn(123);
 
         // 获取当前日期的开始时间
-        $today = Carbon::now()->startOfDay();
+        $today = CarbonImmutable::now()->startOfDay();
 
         // 创建模拟的现有统计对象
         $existingStat = $this->createMock(VisitStat::class);
@@ -95,7 +95,7 @@ class StatServiceTest extends TestCase
         $entity->method('getId')->willReturn(123);
 
         // 获取当前日期的开始时间
-        $today = Carbon::now()->startOfDay();
+        $today = CarbonImmutable::now()->startOfDay();
 
         // 配置visitStatRepository返回null（无现有统计）
         $this->visitStatRepository->expects($this->once())
@@ -140,7 +140,7 @@ class StatServiceTest extends TestCase
         $entity->method('getId')->willReturn(123);
 
         // 获取当前日期的开始时间
-        $today = Carbon::now()->startOfDay();
+        $today = CarbonImmutable::now()->startOfDay();
 
         // 创建模拟的现有统计对象
         $existingStat = $this->createMock(VisitStat::class);

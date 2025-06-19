@@ -12,19 +12,25 @@ use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 
 #[ORM\Entity(repositoryClass: CollectLogRepository::class)]
 #[ORM\Table(name: 'cms_collect_log', options: ['comment' => '收藏记录表'])]
 #[ORM\UniqueConstraint(name: 'cms_collect_log_idx_uniq', columns: ['user_id', 'entity_id'])]
-class CollectLog
+class CollectLog implements \Stringable
 {
+    use TimestampableAware;
+    use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
+    
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
+
+    public function __toString(): string
+    {
+        return $this->id ?? '';
+    }
 
     #[ORM\ManyToOne(targetEntity: UserInterface::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
@@ -47,15 +53,6 @@ class CollectLog
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
     private ?string $updatedFromIp = null;
 
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
-
-    use TimestampableAware;
 
     public function getId(): ?string
     {

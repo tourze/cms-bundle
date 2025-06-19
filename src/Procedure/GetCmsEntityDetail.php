@@ -44,7 +44,7 @@ class GetCmsEntityDetail extends BaseProcedure
             'id' => $this->entityId,
             'state' => EntityState::PUBLISHED,
         ]);
-        if (!$entity) {
+        if ($entity === null) {
             throw new ApiException('找不到文章');
         }
 
@@ -60,7 +60,7 @@ class GetCmsEntityDetail extends BaseProcedure
         $result['visitTotal'] = intval($visitTotal);
         $result['isLike'] = false;
         $user = $this->security->getUser();
-        if ($user) {
+        if ($user !== null) {
             $log = $this->likeLogRepository->findOneBy([
                 'entity' => $entity,
                 'valid' => true,
@@ -72,7 +72,7 @@ class GetCmsEntityDetail extends BaseProcedure
         $this->statService->updateStat($entity);
 
         // 分发事件处理
-        if ($this->security->getUser()) {
+        if ($this->security->getUser() !== null) {
             $event = new VisitEntityEvent();
             $event->setSender($this->security->getUser());
             $event->setReceiver(SystemUser::instance());

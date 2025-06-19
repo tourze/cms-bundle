@@ -2,7 +2,7 @@
 
 namespace CmsBundle\Service;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use CmsBundle\Entity\Entity;
 use CmsBundle\Entity\VisitStat;
 use CmsBundle\Repository\VisitStatRepository;
@@ -29,16 +29,16 @@ class StatService
     {
         // 加个锁，减少重复可能
         $this->entityLockService->lockEntity($entity, function () use ($entity) {
-            $date = Carbon::now()->startOfDay();
+            $date = CarbonImmutable::now()->startOfDay();
 
             // 更新统计
             $stat = $this->visitStatRepository->findOneBy([
                 'entityId' => $entity->getId(),
                 'date' => $date,
             ]);
-            if (!$stat) {
+            if ($stat === null) {
                 $stat = new VisitStat();
-                $stat->setEntityId($entity->getId());
+                $stat->setEntityId((string) $entity->getId());
                 $stat->setDate($date);
                 $stat->setValue(0);
             }

@@ -2,7 +2,7 @@
 
 namespace CmsBundle\Enum;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use CmsBundle\Entity\Attribute;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
@@ -55,13 +55,13 @@ enum FieldType: string implements Labelable, Itemable, Selectable
         switch ($attribute->getType()) {
             case self::DATE:
                 if (is_integer($data)) {
-                    $data = Carbon::createFromTimestamp($data, date_default_timezone_get())->format('Y-m-d');
+                    $data = CarbonImmutable::createFromTimestamp($data, date_default_timezone_get())->format('Y-m-d');
                 }
 
                 break;
             case self::DATE_TIME:
                 if (is_integer($data)) {
-                    $data = Carbon::createFromTimestamp($data, date_default_timezone_get())->format('Y-m-d H:i:s');
+                    $data = CarbonImmutable::createFromTimestamp($data, date_default_timezone_get())->format('Y-m-d H:i:s');
                 }
 
                 break;

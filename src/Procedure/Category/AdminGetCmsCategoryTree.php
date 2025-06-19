@@ -42,7 +42,7 @@ class AdminGetCmsCategoryTree extends CacheableProcedure
     public function getCacheKey(JsonRpcRequest $request): string
     {
         $key = static::buildParamCacheKey($request->getParams());
-        if ($this->security->getUser()) {
+        if ($this->security->getUser() !== null) {
             $key .= '-' . $this->security->getUser()->getUserIdentifier();
         }
 

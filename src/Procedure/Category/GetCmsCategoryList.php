@@ -37,11 +37,11 @@ class GetCmsCategoryList extends BaseProcedure
             ->where('a.valid = true')
             ->orderBy('a.id', 'DESC');
 
-        if ($this->modelCode) {
+        if ($this->modelCode !== null) {
             $model = $this->modelRepository->findOneBy([
                 'code' => $this->modelCode,
             ]);
-            if (!$model) {
+            if ($model === null) {
                 throw new ApiException('找不到指定模型');
             }
             $qb->andWhere('a.model = :model');

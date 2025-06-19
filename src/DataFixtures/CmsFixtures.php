@@ -2,7 +2,7 @@
 
 namespace CmsBundle\DataFixtures;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use CmsBundle\Entity\Attribute;
 use CmsBundle\Entity\Category;
 use CmsBundle\Entity\Entity;
@@ -31,23 +31,23 @@ class CmsFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         $topic = $this->topicRepository->findOneBy(['title' => '运动专题']);
-        if (!$topic) {
+        if ($topic === null) {
             $topic = new Topic();
             $topic->setTitle('运动专题');
             $topic->setDescription('这是一个关于运动相关的话题');
             $topic->setRecommend(true);
-            $topic->setCreateTime(Carbon::now());
+            $topic->setCreateTime(CarbonImmutable::now());
         }
-        $topic->setUpdateTime(Carbon::now());
+        $topic->setUpdateTime(CarbonImmutable::now());
         $manager->persist($topic);
 
         $category = $this->categoryRepository->findOneBy(['title' => '运动']);
-        if (!$category) {
+        if ($category === null) {
             $category = new Category();
             $category->setTitle('运动');
             $category->setDescription('运动');
             $category->setValid(true);
-            $category->setCreateTime(Carbon::now());
+            $category->setCreateTime(CarbonImmutable::now());
             $category->setSortNumber(0);
 
             $array = ['篮球', '足球', '羽毛球', '乒乓球', '排球'];
@@ -57,19 +57,19 @@ class CmsFixtures extends Fixture
                 $category2->setDescription($value);
                 $category2->setParent($category);
                 $category2->setValid(true);
-                $category2->setCreateTime(Carbon::now());
-                $category2->setUpdateTime(Carbon::now());
+                $category2->setCreateTime(CarbonImmutable::now());
+                $category2->setUpdateTime(CarbonImmutable::now());
                 $category2->setSortNumber(0);
 
                 $manager->persist($category2);
             }
         }
-        $category->setUpdateTime(Carbon::now());
+        $category->setUpdateTime(CarbonImmutable::now());
         $manager->persist($category);
 
         $model = $this->modelRepository->findOneBy(['title' => '娱乐文章']);
 
-        if (!$model) {
+        if ($model === null) {
             $model = new Model();
             $model->setValid(true);
             $model->setTitle('娱乐文章');
@@ -78,16 +78,16 @@ class CmsFixtures extends Fixture
             $model->setAllowLike(true);
             $model->setAllowCollect(true);
             $model->setAllowShare(true);
-            $model->setCreateTime(Carbon::now());
+            $model->setCreateTime(CarbonImmutable::now());
         }
-        $model->setUpdateTime(Carbon::now());
+        $model->setUpdateTime(CarbonImmutable::now());
         $manager->persist($model);
 
         $attribute = $this->attributeRepository->findOneBy([
             'title' => '内容',
             'model' => $model,
         ]);
-        if (!$attribute) {
+        if ($attribute === null) {
             $attribute = new Attribute();
             $attribute->setModel($model);
             $attribute->setType(FieldType::RICH_TEXT);
@@ -98,17 +98,17 @@ class CmsFixtures extends Fixture
             $attribute->setName('content');
             $attribute->setSpan(24);
             $attribute->setRequired(true);
-            $attribute->setCreateTime(Carbon::now());
+            $attribute->setCreateTime(CarbonImmutable::now());
         }
-        $attribute->setUpdateTime(Carbon::now());
+        $attribute->setUpdateTime(CarbonImmutable::now());
         $manager->persist($attribute);
 
         foreach ($this->getArticleData() as [$title, $remark,$content]) {
             $article = new Entity();
             $article->setTitle($title);
             $article->setRemark($remark);
-            $article->setPublishTime(Carbon::now());
-            $article->setEndTime(Carbon::now()->addDay());
+            $article->setPublishTime(CarbonImmutable::now());
+            $article->setEndTime(CarbonImmutable::now()->addDay());
             $article->setModel($model);
             $article->setState(EntityState::PUBLISHED);
             $article->addCategory($category);
@@ -119,8 +119,8 @@ class CmsFixtures extends Fixture
             $value->setModel($model);
             $value->setEntity($article);
             $value->setAttribute($attribute);
-            $value->setCreateTime(Carbon::now());
-            $value->setUpdateTime(Carbon::now());
+            $value->setCreateTime(CarbonImmutable::now());
+            $value->setUpdateTime(CarbonImmutable::now());
             $value->setData($content);
             $value->setRawData([
                 'v' => $content,

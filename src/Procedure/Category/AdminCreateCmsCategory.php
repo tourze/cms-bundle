@@ -42,7 +42,7 @@ class AdminCreateCmsCategory extends LockableProcedure
         $parent = null;
         if (null !== $this->parentId) {
             $parent = $this->categoryRepository->find($this->parentId);
-            if (!$parent) {
+            if ($parent === null) {
                 throw new ApiException('找不到上级分类');
             }
         }

@@ -14,8 +14,6 @@ use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
 use Tourze\EnumExtra\Selectable;
 
 #[ORM\Table(name: 'cms_attribute', options: ['comment' => 'cms属性表'])]
@@ -23,18 +21,12 @@ use Tourze\EnumExtra\Selectable;
 class Attribute implements \Stringable
 {
     use TimestampableAware;
+    use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
-
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     #[CreateIpColumn]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
@@ -87,7 +79,7 @@ class Attribute implements \Stringable
 
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否可搜索'])]
-    private ?bool $searchable = false;
+    private bool $searchable = false;
 
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '支持导入'])]
@@ -95,7 +87,7 @@ class Attribute implements \Stringable
 
     #[TrackColumn]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '排序'])]
-    private ?int $displayOrder = 0;
+    private int $displayOrder = 0;
 
     #[TrackColumn]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '配置'])]
@@ -106,7 +98,7 @@ class Attribute implements \Stringable
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if ($this->getId() === null || $this->getId() === 0) {
             return '';
         }
 
