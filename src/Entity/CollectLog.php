@@ -14,9 +14,7 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
 
-#[BatchDeletable]
 #[ORM\Entity(repositoryClass: CollectLogRepository::class)]
 #[ORM\Table(name: 'cms_collect_log', options: ['comment' => '收藏记录表'])]
 #[ORM\UniqueConstraint(name: 'cms_collect_log_idx_uniq', columns: ['user_id', 'entity_id'])]

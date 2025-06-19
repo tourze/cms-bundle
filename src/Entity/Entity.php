@@ -16,7 +16,6 @@ use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\BatchDeletable;
 use Tourze\EasyAdmin\Attribute\Action\Importable;
 use Tourze\EasyAdmin\Attribute\Action\Listable;
 use Tourze\EasyAdmin\Attribute\Column\ImportColumn;
@@ -26,7 +25,6 @@ use Tourze\LockServiceBundle\Model\LockEntity;
 
 #[Listable(actionWidth: 150)]
 #[Importable(generateTemplate: false, featureKey: 'CMS_ENTITY_IMPORTABLE')]
-#[BatchDeletable]
 #[ORM\Table(name: 'cms_entity', options: ['comment' => '文章管理表'])]
 #[ORM\Entity(repositoryClass: EntityRepository::class)]
 class Entity implements \Stringable, AdminArrayInterface, LockEntity
