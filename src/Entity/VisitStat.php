@@ -12,7 +12,7 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 #[ORM\Entity(repositoryClass: VisitStatRepository::class)]
 #[ORM\Table(name: 'cms_visit_stat', options: ['comment' => '访问统计表'])]
 #[ORM\UniqueConstraint(name: 'cms_stat_unique_entity_date', columns: ['entity_id', 'date'])]
-class VisitStat
+class VisitStat implements \Stringable
 {
     use TimestampableAware;
     #[ORM\Id]
@@ -22,8 +22,8 @@ class VisitStat
     private ?string $id = null;
 
     #[IndexColumn]
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '日期'])]
-    private ?\DateTimeInterface $date = null;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '日期'])]
+    private ?\DateTimeImmutable $date = null;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => '文章ID'])]
@@ -32,17 +32,26 @@ class VisitStat
     #[ORM\Column(name: 'value', type: Types::INTEGER, nullable: false, options: ['comment' => '总数'])]
     private ?int $value = null;
 
+    public function __toString(): string
+    {
+        if ($this->getId() === null) {
+            return '';
+        }
+
+        return (string) $this->getId();
+    }
+
     public function getId(): ?string
     {
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDate(): ?\DateTimeImmutable
     {
         return $this->date;
     }
 
-    public function setDate(\DateTimeInterface $date): self
+    public function setDate(\DateTimeImmutable $date): self
     {
         $this->date = $date;
 

@@ -16,7 +16,7 @@ use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
 #[ORM\Entity(repositoryClass: LikeLogRepository::class)]
 #[ORM\Table(name: 'cms_like_log', options: ['comment' => '点赞记录表'])]
 #[ORM\UniqueConstraint(name: 'cms_like_log_idx_uniq', columns: ['user_id', 'entity_id'])]
-class LikeLog
+class LikeLog implements \Stringable
 {
     use TimestampableAware;
     use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
@@ -48,6 +48,14 @@ class LikeLog
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
     private ?bool $valid = false;
 
+    public function __toString(): string
+    {
+        if ($this->getId() === null) {
+            return '';
+        }
+
+        return (string) $this->getId();
+    }
 
     public function getId(): ?string
     {

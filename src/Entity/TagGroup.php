@@ -9,16 +9,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\Listable;
 
-#[Listable]
 #[ORM\Entity(repositoryClass: TagGroupRepository::class)]
 #[ORM\Table(name: 'cms_tag_group', options: ['comment' => '标签分组表'])]
-class TagGroup
+class TagGroup implements \Stringable
 {
     use TimestampableAware;
+    use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
@@ -31,46 +28,23 @@ class TagGroup
     #[ORM\OneToMany(mappedBy: 'groups', targetEntity: Tag::class)]
     private Collection $tags;
 
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
-
     public function __construct()
     {
         $this->tags = new ArrayCollection();
     }
 
+    public function __toString(): string
+    {
+        if ($this->getId() === null) {
+            return '';
+        }
+
+        return $this->getName() ?? '';
+    }
+
     public function getId(): ?string
     {
         return $this->id;
-    }
-
-    public function setCreatedBy(?string $createdBy): self
-    {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
     }
 
     public function getName(): ?string

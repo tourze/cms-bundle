@@ -14,15 +14,8 @@ use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\EasyAdmin\Attribute\Action\Importable;
-use Tourze\EasyAdmin\Attribute\Action\Listable;
-use Tourze\EasyAdmin\Attribute\Column\ImportColumn;
-use Tourze\EasyAdmin\Attribute\Field\LinkageField;
-use Tourze\EasyAdmin\Attribute\Filter\Filterable;
 use Tourze\LockServiceBundle\Model\LockEntity;
 
-#[Listable(actionWidth: 150)]
-#[Importable(generateTemplate: false, featureKey: 'CMS_ENTITY_IMPORTABLE')]
 #[ORM\Table(name: 'cms_entity', options: ['comment' => '文章管理表'])]
 #[ORM\Entity(repositoryClass: EntityRepository::class)]
 class Entity implements \Stringable, AdminArrayInterface, LockEntity
@@ -36,19 +29,15 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '文章ID'])]
     private ?int $id = 0;
 
-    #[ImportColumn]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '标题'])]
     private string $title;
 
-    #[LinkageField]
-    #[Filterable(label: '模型')]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\ManyToOne(targetEntity: Model::class, fetch: 'EXTRA_LAZY', inversedBy: 'entities')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Model $model = null;
 
-    #[Filterable(label: '目录')]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'entities', fetch: 'EXTRA_LAZY')]
     private Collection $categories;
@@ -74,17 +63,14 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     #[ORM\OneToMany(mappedBy: 'entity', targetEntity: Value::class, cascade: ['persist'], fetch: 'EXTRA_LAZY', orphanRemoval: true, indexBy: 'attribute_id')]
     private Collection $valueList;
 
-    #[ImportColumn]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '发布时间'])]
-    private ?\DateTimeInterface $publishTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '发布时间'])]
+    private ?\DateTimeImmutable $publishTime = null;
 
-    #[ImportColumn]
     #[Groups(['restful_read', 'admin_curd'])]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '结束时间'])]
-    private ?\DateTimeInterface $endTime = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '结束时间'])]
+    private ?\DateTimeImmutable $endTime = null;
 
-    #[ImportColumn]
     #[Groups(['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 32, enumType: EntityState::class, options: ['comment' => '状态'])]
     private EntityState $state;
@@ -114,7 +100,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     #[ORM\OneToMany(mappedBy: 'entity', targetEntity: ShareLog::class, fetch: 'EXTRA_LAZY', orphanRemoval: true)]
     private Collection $shareLogs;
 
-    #[ImportColumn]
     #[Groups(['admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '备注'])]
     private ?string $remark = null;
@@ -492,24 +477,24 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $result;
     }
 
-    public function getPublishTime(): ?\DateTimeInterface
+    public function getPublishTime(): ?\DateTimeImmutable
     {
         return $this->publishTime;
     }
 
-    public function setPublishTime(?\DateTimeInterface $publishTime): self
+    public function setPublishTime(?\DateTimeImmutable $publishTime): self
     {
         $this->publishTime = $publishTime;
 
         return $this;
     }
 
-    public function getEndTime(): ?\DateTimeInterface
+    public function getEndTime(): ?\DateTimeImmutable
     {
         return $this->endTime;
     }
 
-    public function setEndTime(?\DateTimeInterface $endTime): self
+    public function setEndTime(?\DateTimeImmutable $endTime): self
     {
         $this->endTime = $endTime;
 

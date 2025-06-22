@@ -17,7 +17,7 @@ use Tourze\DoctrineTimestampBundle\Traits\CreateTimeAware;
  */
 #[ORM\Entity(repositoryClass: ShareLogRepository::class, readOnly: true)]
 #[ORM\Table(name: 'cms_share_log', options: ['comment' => '分析记录表'])]
-class ShareLog
+class ShareLog implements \Stringable
 {
     use CreateTimeAware;
     use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
@@ -43,6 +43,15 @@ class ShareLog
     #[UpdateIpColumn]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
     private ?string $updatedFromIp = null;
+
+    public function __toString(): string
+    {
+        if ($this->getId() === null) {
+            return '';
+        }
+
+        return (string) $this->getId();
+    }
 
     public function getId(): ?string
     {

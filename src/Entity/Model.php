@@ -15,10 +15,6 @@ use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Action\CurdAction;
-use Tourze\EasyAdmin\Attribute\Column\CopyColumn;
 use Tourze\EnumExtra\Itemable;
 use Yiisoft\Arrays\ArraySorter;
 
@@ -27,17 +23,16 @@ use Yiisoft\Arrays\ArraySorter;
 class Model implements \Stringable, Itemable, AdminArrayInterface
 {
     use TimestampableAware;
+    use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
-    #[CopyColumn(suffix: true)]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 64, unique: true, options: ['comment' => '代号'])]
     private string $code;
 
-    #[CopyColumn(suffix: true)]
     #[Groups(['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '模型名'])]
     private string $title = '';
@@ -47,8 +42,6 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
      *
      * @var Collection<Attribute>
      */
-    #[CopyColumn(suffix: true)]
-    #[CurdAction(label: '属性', drawerWidth: 1200)]
     #[ORM\OneToMany(mappedBy: 'model', targetEntity: Attribute::class, indexBy: 'name')]
     private Collection $attributes;
 
@@ -84,9 +77,6 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '排序'])]
     private ?int $sortNumber = null;
 
-    /**
-     * TODO 怎么做这种枚举的下拉选择？
-     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '内容列表排序'])]
     private ?array $contentSorts = [];
 
@@ -97,14 +87,6 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
     #[TrackColumn]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
     private ?bool $valid = false;
-
-    #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
-    private ?string $updatedBy = null;
 
     #[CreateIpColumn]
     #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
@@ -123,7 +105,7 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
 
     public function __toString(): string
     {
-        if (!$this->getId()) {
+        if ($this->getId() === null || $this->getId() === 0) {
             return '';
         }
 

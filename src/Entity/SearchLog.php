@@ -14,7 +14,7 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
  */
 #[ORM\Table(name: 'ims_cms_search', options: ['comment' => '搜索记录表'])]
 #[ORM\Entity(repositoryClass: SearchLogRepository::class)]
-class SearchLog
+class SearchLog implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -43,6 +43,15 @@ class SearchLog
     private int $hit = 0;
 
     use TimestampableAware;
+
+    public function __toString(): string
+    {
+        if ($this->getId() === null) {
+            return '';
+        }
+
+        return $this->getKeyword() . ' (' . $this->getId() . ')';
+    }
 
     public function getId(): ?string
     {

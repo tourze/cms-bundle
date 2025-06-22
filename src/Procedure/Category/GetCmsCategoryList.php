@@ -5,7 +5,6 @@ namespace CmsBundle\Procedure\Category;
 use CmsBundle\Entity\Category;
 use CmsBundle\Repository\CategoryRepository;
 use CmsBundle\Repository\ModelRepository;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
@@ -27,7 +26,6 @@ class GetCmsCategoryList extends BaseProcedure
     public function __construct(
         private readonly CategoryRepository $categoryRepository,
         private readonly ModelRepository $modelRepository,
-        private readonly NormalizerInterface $normalizer,
     ) {
     }
 

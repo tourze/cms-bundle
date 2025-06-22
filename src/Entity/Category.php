@@ -354,7 +354,7 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
     public function retrieveAdminTreeArray(): array
     {
         $children = null;
-        if ($this->getChildren() !== null && $this->getChildren()->count() > 0) {
+        if ($this->getChildren()->count() > 0) {
             $children = [];
             foreach ($this->getChildren() as $child) {
                 $children[] = $child->retrieveAdminTreeArray();
