@@ -34,12 +34,15 @@ class AdminMenu implements MenuProviderInterface
         //            }
         //        }
 
-        $item->getChild('内容中心')->addChild('内容管理')->setUri($this->linkGenerator->getCurdListPage(Entity::class));
-        $item->getChild('内容中心')->addChild('模型管理')->setUri($this->linkGenerator->getCurdListPage(Model::class));
-        $item->getChild('内容中心')->addChild('目录管理')->setUri($this->linkGenerator->getCurdListPage(Category::class));
-        $item->getChild('内容中心')->addChild('专题管理')->setUri($this->linkGenerator->getCurdListPage(Topic::class));
-        $item->getChild('内容中心')->addChild('标签管理')->setUri($this->linkGenerator->getCurdListPage(Tag::class));
-        $item->getChild('内容中心')->addChild('收藏日志')->setUri($this->linkGenerator->getCurdListPage(CollectLog::class));
-        $item->getChild('内容中心')->addChild('点赞日志')->setUri($this->linkGenerator->getCurdListPage(LikeLog::class));
+        $contentCenter = $item->getChild('内容中心');
+        if ($contentCenter !== null) {
+            $contentCenter->addChild('内容管理')->setUri($this->linkGenerator->getCurdListPage(Entity::class));
+            $contentCenter->addChild('模型管理')->setUri($this->linkGenerator->getCurdListPage(Model::class));
+            $contentCenter->addChild('目录管理')->setUri($this->linkGenerator->getCurdListPage(Category::class));
+            $contentCenter->addChild('专题管理')->setUri($this->linkGenerator->getCurdListPage(Topic::class));
+            $contentCenter->addChild('标签管理')->setUri($this->linkGenerator->getCurdListPage(Tag::class));
+            $contentCenter->addChild('收藏日志')->setUri($this->linkGenerator->getCurdListPage(CollectLog::class));
+            $contentCenter->addChild('点赞日志')->setUri($this->linkGenerator->getCurdListPage(LikeLog::class));
+        }
     }
 }

@@ -16,14 +16,14 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
-#[MethodExpose('ShareCmsEntity')]
-#[MethodTag('内容管理')]
-#[MethodDoc('分享指定文章')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodExpose(method: 'ShareCmsEntity')]
+#[MethodTag(name: '内容管理')]
+#[MethodDoc(summary: '分享指定文章')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class ShareCmsEntity extends LockableProcedure
 {
-    #[MethodParam('文章ID')]
+    #[MethodParam(description: '文章ID')]
     public int $entityId;
 
     public function __construct(
@@ -33,6 +33,9 @@ class ShareCmsEntity extends LockableProcedure
     ) {
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public static function getMockResult(): ?array
     {
         return [
@@ -40,6 +43,9 @@ class ShareCmsEntity extends LockableProcedure
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $entity = $this->entityRepository->findOneBy([

@@ -13,14 +13,14 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 use Tourze\JsonRPCPaginatorBundle\Procedure\PaginatorTrait;
 
-#[MethodTag('内容管理')]
-#[MethodDoc('获取目录')]
-#[MethodExpose('GetCmsCategoryList')]
+#[MethodTag(name: '内容管理')]
+#[MethodDoc(summary: '获取目录')]
+#[MethodExpose(method: 'GetCmsCategoryList')]
 class GetCmsCategoryList extends BaseProcedure
 {
     use PaginatorTrait;
 
-    #[MethodParam('模型code')]
+    #[MethodParam(description: '模型code')]
     public ?string $modelCode = null;
 
     public function __construct(
@@ -29,6 +29,9 @@ class GetCmsCategoryList extends BaseProcedure
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $qb = $this->categoryRepository->createQueryBuilder('a')
@@ -49,6 +52,9 @@ class GetCmsCategoryList extends BaseProcedure
         return $this->fetchList($qb, $this->formatItem(...));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function formatItem(Category $item): array
     {
         return $item->retrieveApiArray();

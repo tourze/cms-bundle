@@ -23,84 +23,87 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     use TimestampableAware;
     use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
     
-    #[Groups(['restful_read', 'admin_curd'])]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '文章ID'])]
     private ?int $id = 0;
 
-    #[Groups(['restful_read', 'admin_curd'])]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '标题'])]
     private string $title;
 
-    #[Groups(['restful_read', 'admin_curd'])]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\ManyToOne(targetEntity: Model::class, fetch: 'EXTRA_LAZY', inversedBy: 'entities')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Model $model = null;
 
-    #[Groups(['restful_read', 'admin_curd'])]
+    /**
+     * @var Collection<int, Category>
+     */
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'entities', fetch: 'EXTRA_LAZY')]
     private Collection $categories;
 
     /**
-     * @var Collection<Tag>
+     * @var Collection<int, Tag>
      */
-    #[Groups(['restful_read', 'admin_curd'])]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'entities', fetch: 'EXTRA_LAZY')]
     private Collection $tags;
 
     /**
-     * @var Collection<Topic>
+     * @var Collection<int, Topic>
      */
-    #[Groups(['admin_curd'])]
+    #[Groups(groups: ['admin_curd'])]
     #[ORM\ManyToMany(targetEntity: Topic::class, mappedBy: 'entities', fetch: 'EXTRA_LAZY')]
     private Collection $topics;
 
     /**
-     * @var Collection<Value>
+     * @var Collection<int, Value>
      */
-    #[Groups(['restful_read', 'admin_curd'])]
-    #[ORM\OneToMany(mappedBy: 'entity', targetEntity: Value::class, cascade: ['persist'], fetch: 'EXTRA_LAZY', orphanRemoval: true, indexBy: 'attribute_id')]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
+    #[ORM\OneToMany(targetEntity: Value::class, mappedBy: 'entity', cascade: ['persist'], fetch: 'EXTRA_LAZY', orphanRemoval: true, indexBy: 'attribute_id')]
     private Collection $valueList;
 
-    #[Groups(['restful_read', 'admin_curd'])]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '发布时间'])]
     private ?\DateTimeImmutable $publishTime = null;
 
-    #[Groups(['restful_read', 'admin_curd'])]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '结束时间'])]
     private ?\DateTimeImmutable $endTime = null;
 
-    #[Groups(['restful_read', 'admin_curd'])]
+    #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 32, enumType: EntityState::class, options: ['comment' => '状态'])]
     private EntityState $state;
 
-    #[Groups(['admin_curd'])]
+    #[Groups(groups: ['admin_curd'])]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '排序'])]
     private ?int $sortNumber = null;
 
     /**
-     * @var Collection<CollectLog>
+     * @var Collection<int, CollectLog>
      */
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'entity', targetEntity: CollectLog::class, fetch: 'EXTRA_LAZY', orphanRemoval: true)]
     private Collection $collectLogs;
 
     /**
-     * @var Collection<LikeLog>
+     * @var Collection<int, LikeLog>
      */
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'entity', targetEntity: LikeLog::class, fetch: 'EXTRA_LAZY', orphanRemoval: true)]
     private Collection $likeLogs;
 
     /**
-     * @var Collection<ShareLog>
+     * @var Collection<int, ShareLog>
      */
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'entity', targetEntity: ShareLog::class, fetch: 'EXTRA_LAZY', orphanRemoval: true)]
     private Collection $shareLogs;
 
-    #[Groups(['admin_curd'])]
+    #[Groups(groups: ['admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '备注'])]
     private ?string $remark = null;
 
@@ -132,7 +135,7 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         $this->comments = new ArrayCollection();
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         if ($this->getId() === null || $this->getId() === 0) {
             return '';
@@ -430,7 +433,7 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     }
 
     /**
-     * @return array[]
+     * @return array<int, array<string, mixed>>
      */
     public function renderRealStats(): array
     {
@@ -452,8 +455,10 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
 
     /**
      * 获取统计数据.
+     *
+     * @return array<string, int>
      */
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     public function getRealStats(): array
     {
         return [
@@ -465,13 +470,17 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
 
     /**
      * 方便读取数据.
+     *
+     * @return array<string, mixed>
      */
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     public function getValues(): array
     {
         $result = [];
         foreach ($this->getValueList() as $item) {
-            $result[$item->getAttribute()->getName()] = $item->getCastData();
+            if ($item->getAttribute() !== null) {
+                $result[$item->getAttribute()->getName()] = $item->getCastData();
+            }
         }
 
         return $result;
@@ -501,6 +510,9 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveAdminArray(): array
     {
         return [

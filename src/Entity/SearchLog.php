@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 /**
@@ -16,11 +17,7 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 #[ORM\Entity(repositoryClass: SearchLogRepository::class)]
 class SearchLog implements \Stringable
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::INTEGER, nullable: false, options: ['default' => 0, 'comment' => '用户ID'])]
@@ -53,11 +50,10 @@ class SearchLog implements \Stringable
         return $this->getKeyword() . ' (' . $this->getId() . ')';
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveApiArray(): array
     {
         return [

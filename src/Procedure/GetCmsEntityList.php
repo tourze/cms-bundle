@@ -22,20 +22,20 @@ use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 use Tourze\JsonRPCPaginatorBundle\Procedure\PaginatorTrait;
 use Yiisoft\Arrays\ArrayHelper;
 
-#[MethodTag('内容管理')]
-#[MethodDoc('拉取CMS内容列表')]
-#[MethodExpose('GetCmsEntityList')]
+#[MethodTag(name: '内容管理')]
+#[MethodDoc(summary: '拉取CMS内容列表')]
+#[MethodExpose(method: 'GetCmsEntityList')]
 class GetCmsEntityList extends BaseProcedure
 {
     use PaginatorTrait;
 
-    #[MethodParam('文章目录')]
+    #[MethodParam(description: '文章目录')]
     public ?int $categoryId = null;
 
-    #[MethodParam('模型代号')]
+    #[MethodParam(description: '模型代号')]
     public ?string $modelCode = null;
 
-    #[MethodParam('搜索关键词')]
+    #[MethodParam(description: '搜索关键词')]
     public string $keyword = '';
 
     public function __construct(
@@ -50,6 +50,9 @@ class GetCmsEntityList extends BaseProcedure
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $user = $this->security->getUser();
@@ -88,6 +91,10 @@ class GetCmsEntityList extends BaseProcedure
         return $this->fetchList($qb, fn (Entity $item) => $this->format($item, $user));
     }
 
+    /**
+     * @param mixed $user
+     * @return array<string, mixed>
+     */
     private function format(Entity $item, $user): array
     {
         $visitTotal = $this->visitStatRepository->createQueryBuilder('v')
@@ -97,7 +104,7 @@ class GetCmsEntityList extends BaseProcedure
             ->getQuery()
             ->getSingleScalarResult();
         $isLike = false;
-        if ($user) {
+        if ($user !== null) {
             $log = $this->likeLogRepository->findOneBy([
                 'entity' => $item,
                 'valid' => true,
@@ -106,8 +113,12 @@ class GetCmsEntityList extends BaseProcedure
             $isLike = (bool) $log;
         }
 
-        $result = $this->normalizer->normalize($item, 'array', ['groups' => 'restful_read']);
-        $result['visitTotal'] = intval($visitTotal);
+        $normalized = $this->normalizer->normalize($item, 'array', ['groups' => 'restful_read']);
+        if (!is_array($normalized)) {
+            $normalized = [];
+        }
+        $result = $normalized;
+        $result['visitTotal'] = intval($visitTotal ?? 0);
         $result['isLike'] = $isLike;
 
         return $result;

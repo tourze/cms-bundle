@@ -14,10 +14,10 @@ use Tourze\JsonRPC\Core\Model\JsonRpcRequest;
 use Tourze\JsonRPCCacheBundle\Procedure\CacheableProcedure;
 use Tourze\JsonRPCPaginatorBundle\Procedure\PaginatorTrait;
 
-#[MethodTag('内容分类管理')]
-#[MethodDoc('获取所有内容分类')]
-#[MethodExpose('AdminGetCmsCategoryList')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodTag(name: '内容分类管理')]
+#[MethodDoc(summary: '获取所有内容分类')]
+#[MethodExpose(method: 'AdminGetCmsCategoryList')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class AdminGetCmsCategoryList extends CacheableProcedure
 {
     use PaginatorTrait;
@@ -28,6 +28,9 @@ class AdminGetCmsCategoryList extends CacheableProcedure
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $qb = $this->entityManager
@@ -53,11 +56,17 @@ class AdminGetCmsCategoryList extends CacheableProcedure
         return 60;
     }
 
+    /**
+     * @return iterable<string>
+     */
     public function getCacheTags(JsonRpcRequest $request): iterable
     {
         yield CacheHelper::getClassTags(Category::class);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function formatItem(Category $category): array
     {
         return $category->retrieveAdminArray();

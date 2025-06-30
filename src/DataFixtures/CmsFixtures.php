@@ -11,97 +11,73 @@ use CmsBundle\Entity\Topic;
 use CmsBundle\Entity\Value;
 use CmsBundle\Enum\EntityState;
 use CmsBundle\Enum\FieldType;
-use CmsBundle\Repository\AttributeRepository;
-use CmsBundle\Repository\CategoryRepository;
-use CmsBundle\Repository\ModelRepository;
-use CmsBundle\Repository\TopicRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
 class CmsFixtures extends Fixture
 {
-    public function __construct(
-        private readonly CategoryRepository $categoryRepository,
-        private readonly TopicRepository $topicRepository,
-        private readonly ModelRepository $modelRepository,
-        private readonly AttributeRepository $attributeRepository,
-    ) {
-    }
 
     public function load(ObjectManager $manager): void
     {
-        $topic = $this->topicRepository->findOneBy(['title' => '运动专题']);
-        if ($topic === null) {
-            $topic = new Topic();
-            $topic->setTitle('运动专题');
-            $topic->setDescription('这是一个关于运动相关的话题');
-            $topic->setRecommend(true);
-            $topic->setCreateTime(CarbonImmutable::now());
-        }
+        $topic = new Topic();
+        $topic->setTitle('运动专题');
+        $topic->setDescription('这是一个关于运动相关的话题');
+        $topic->setRecommend(true);
+        $topic->setCreateTime(CarbonImmutable::now());
         $topic->setUpdateTime(CarbonImmutable::now());
         $manager->persist($topic);
+        $this->addReference('topic-sports', $topic);
 
-        $category = $this->categoryRepository->findOneBy(['title' => '运动']);
-        if ($category === null) {
-            $category = new Category();
-            $category->setTitle('运动');
-            $category->setDescription('运动');
-            $category->setValid(true);
-            $category->setCreateTime(CarbonImmutable::now());
-            $category->setSortNumber(0);
-
-            $array = ['篮球', '足球', '羽毛球', '乒乓球', '排球'];
-            foreach ($array as $value) {
-                $category2 = new Category();
-                $category2->setTitle($value);
-                $category2->setDescription($value);
-                $category2->setParent($category);
-                $category2->setValid(true);
-                $category2->setCreateTime(CarbonImmutable::now());
-                $category2->setUpdateTime(CarbonImmutable::now());
-                $category2->setSortNumber(0);
-
-                $manager->persist($category2);
-            }
-        }
+        $category = new Category();
+        $category->setTitle('运动');
+        $category->setDescription('运动');
+        $category->setValid(true);
+        $category->setCreateTime(CarbonImmutable::now());
+        $category->setSortNumber(0);
         $category->setUpdateTime(CarbonImmutable::now());
         $manager->persist($category);
+        $this->addReference('category-sports', $category);
 
-        $model = $this->modelRepository->findOneBy(['title' => '娱乐文章']);
-
-        if ($model === null) {
-            $model = new Model();
-            $model->setValid(true);
-            $model->setTitle('娱乐文章');
-            $model->setCode('娱乐文章');
-            $model->setSortNumber(0);
-            $model->setAllowLike(true);
-            $model->setAllowCollect(true);
-            $model->setAllowShare(true);
-            $model->setCreateTime(CarbonImmutable::now());
+        $array = ['篮球', '足球', '羽毛球', '乒乓球', '排球'];
+        foreach ($array as $value) {
+            $category2 = new Category();
+            $category2->setTitle($value);
+            $category2->setDescription($value);
+            $category2->setParent($category);
+            $category2->setValid(true);
+            $category2->setCreateTime(CarbonImmutable::now());
+            $category2->setUpdateTime(CarbonImmutable::now());
+            $category2->setSortNumber(0);
+            $manager->persist($category2);
         }
+
+        $model = new Model();
+        $model->setValid(true);
+        $model->setTitle('娱乐文章');
+        $model->setCode('娱乐文章');
+        $model->setSortNumber(0);
+        $model->setAllowLike(true);
+        $model->setAllowCollect(true);
+        $model->setAllowShare(true);
+        $model->setCreateTime(CarbonImmutable::now());
         $model->setUpdateTime(CarbonImmutable::now());
         $manager->persist($model);
+        $this->addReference('model-entertainment', $model);
 
-        $attribute = $this->attributeRepository->findOneBy([
-            'title' => '内容',
-            'model' => $model,
-        ]);
-        if ($attribute === null) {
-            $attribute = new Attribute();
-            $attribute->setModel($model);
-            $attribute->setType(FieldType::RICH_TEXT);
-            $attribute->setTitle('内容');
-            $attribute->setValid(true);
-            $attribute->setSearchable(true);
-            $attribute->setDisplayOrder(2);
-            $attribute->setName('content');
-            $attribute->setSpan(24);
-            $attribute->setRequired(true);
-            $attribute->setCreateTime(CarbonImmutable::now());
-        }
+        $attribute = new Attribute();
+        $attribute->setModel($model);
+        $attribute->setType(FieldType::RICH_TEXT);
+        $attribute->setTitle('内容');
+        $attribute->setValid(true);
+        $attribute->setSearchable(true);
+        $attribute->setDisplayOrder(2);
+        $attribute->setName('content');
+        $attribute->setSpan(24);
+        $attribute->setRequired(true);
+        $attribute->setCreateTime(CarbonImmutable::now());
         $attribute->setUpdateTime(CarbonImmutable::now());
         $manager->persist($attribute);
+        $this->addReference('attribute-content', $attribute);
 
         foreach ($this->getArticleData() as [$title, $remark,$content]) {
             $article = new Entity();
@@ -130,7 +106,10 @@ class CmsFixtures extends Fixture
         $manager->flush();
     }
 
-    public function getArticleData()
+    /**
+     * @return array<array{string, string, string}>
+     */
+    public function getArticleData(): array
     {
         return [
             ['篮球的魅力', '篮球的魅力', '<p>篮球（basketball），是以手为中心的身体对抗性体育运动，是奥运会核心比赛项目。1891年12月21日，由美国马萨诸塞州斯普林菲尔德基督教青年会训练学校体育教师詹姆士·奈史密斯发明。1896年，篮球运动传入中国天津。</p>'],

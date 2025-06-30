@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: VisitStatRepository::class)]
@@ -15,11 +16,7 @@ use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 class VisitStat implements \Stringable
 {
     use TimestampableAware;
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[IndexColumn]
     #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '日期'])]
@@ -41,10 +38,6 @@ class VisitStat implements \Stringable
         return (string) $this->getId();
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getDate(): ?\DateTimeImmutable
     {

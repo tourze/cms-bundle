@@ -42,7 +42,7 @@ class StatService
                 $stat->setDate($date);
                 $stat->setValue(0);
             }
-            $stat->setValue($stat->getValue() + 1);
+            $stat->setValue(($stat->getValue() ?? 0) + 1);
             try {
                 $this->entityManager->persist($stat);
                 $this->entityManager->flush();

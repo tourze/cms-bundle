@@ -9,6 +9,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\CreateTimeAware;
 
 /**
@@ -21,12 +22,7 @@ class ShareLog implements \Stringable
 {
     use CreateTimeAware;
     use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
-
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[ORM\ManyToOne(targetEntity: UserInterface::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
@@ -53,10 +49,6 @@ class ShareLog implements \Stringable
         return (string) $this->getId();
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getUser(): ?UserInterface
     {

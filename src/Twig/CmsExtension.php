@@ -4,6 +4,7 @@ namespace CmsBundle\Twig;
 
 use CmsBundle\Entity\Entity;
 use CmsBundle\Enum\EntityState;
+use CmsBundle\Exception\ModelNotFoundException;
 use CmsBundle\Repository\EntityRepository;
 use CmsBundle\Repository\ModelRepository;
 use Doctrine\Common\Collections\Criteria;
@@ -17,8 +18,7 @@ class CmsExtension extends AbstractExtension
     public function __construct(
         private readonly ModelRepository $modelRepository,
         private readonly EntityRepository $entityRepository,
-    ) {
-    }
+    ) {}
 
     public function getFunctions(): array
     {
@@ -42,11 +42,14 @@ class CmsExtension extends AbstractExtension
     /**
      * 拉取指定模型的实体列表
      */
+    /**
+     * @return array<Entity>
+     */
     public function getCmsEntityList(string $modelCode, int $limit = 20, int $offset = 0): array
     {
         $model = $this->modelRepository->findOneBy(['code' => $modelCode]);
         if ($model === null) {
-            throw new \LogicException('找不到指定CMS模型');
+            throw new ModelNotFoundException($modelCode);
         }
 
         $qb = $this->entityRepository->createQueryBuilder('a')

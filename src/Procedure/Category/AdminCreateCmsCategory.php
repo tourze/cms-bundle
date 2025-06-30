@@ -14,29 +14,32 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 
-#[MethodTag('内容分类管理')]
-#[MethodDoc('创建内容分类')]
-#[MethodExpose('AdminCreateCmsCategory')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodTag(name: '内容分类管理')]
+#[MethodDoc(summary: '创建内容分类')]
+#[MethodExpose(method: 'AdminCreateCmsCategory')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class AdminCreateCmsCategory extends LockableProcedure
 {
-    #[MethodParam('标题')]
+    #[MethodParam(description: '标题')]
     public string $title;
 
-    #[MethodParam('上级分类ID')]
+    #[MethodParam(description: '上级分类ID')]
     public ?string $parentId = null;
 
-    #[MethodParam('是否有效')]
+    #[MethodParam(description: '是否有效')]
     public ?bool $valid = null;
 
-    #[MethodParam('排序编号')]
+    #[MethodParam(description: '排序编号')]
     public ?int $sortNumber = 0;
 
     public function __construct(private readonly CategoryRepository $categoryRepository, private readonly EntityManagerInterface $entityManager)
     {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $parent = null;

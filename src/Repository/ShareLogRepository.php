@@ -8,9 +8,11 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method ShareLog|null find($id, $lockMode = null, $lockVersion = null)
- * @method ShareLog|null findOneBy(array $criteria, array $orderBy = null)
+ * @method ShareLog|null findOneBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null)
  * @method ShareLog[]    findAll()
- * @method ShareLog[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method ShareLog[]    findBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends ServiceEntityRepository<ShareLog>
  */
 class ShareLogRepository extends ServiceEntityRepository
 {

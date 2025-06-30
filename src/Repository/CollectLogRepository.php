@@ -8,9 +8,11 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method CollectLog|null find($id, $lockMode = null, $lockVersion = null)
- * @method CollectLog|null findOneBy(array $criteria, array $orderBy = null)
+ * @method CollectLog|null findOneBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null)
  * @method CollectLog[]    findAll()
- * @method CollectLog[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method CollectLog[]    findBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends ServiceEntityRepository<CollectLog>
  */
 class CollectLogRepository extends ServiceEntityRepository
 {

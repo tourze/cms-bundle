@@ -29,7 +29,7 @@ class ContentService
         $searchableAttributes = [];
         foreach ($models as $mdl) {
             foreach ($mdl->getAttributes() as $attribute) {
-                if (!$attribute->getSearchable()) {
+                if (!($attribute->getSearchable() ?? false)) {
                     continue;
                 }
 

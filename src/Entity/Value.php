@@ -11,6 +11,7 @@ use Symfony\Component\Serializer\Attribute\Ignore;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Yiisoft\Arrays\ArrayHelper;
 
@@ -21,17 +22,13 @@ class Value implements \Stringable
 {
     use TimestampableAware;
     use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[ORM\ManyToOne(targetEntity: Model::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?Model $model = null;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\ManyToOne(targetEntity: Attribute::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Attribute $attribute = null;
@@ -41,10 +38,13 @@ class Value implements \Stringable
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?Entity $entity = null;
 
+    /**
+     * @var array<string, mixed>
+     */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '原始数据'])]
     private array $rawData = [];
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '数据内容'])]
     private ?string $data = null;
 
@@ -65,10 +65,6 @@ class Value implements \Stringable
         return (string) $this->getId();
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function setCreatedFromIp(?string $createdFromIp): self
     {
@@ -118,11 +114,17 @@ class Value implements \Stringable
         return $this;
     }
 
-    public function getRawData(): ?array
+    /**
+     * @return array<string, mixed>
+     */
+    public function getRawData(): array
     {
         return $this->rawData;
     }
 
+    /**
+     * @param array<string, mixed> $rawData
+     */
     public function setRawData(array $rawData): self
     {
         $this->rawData = $rawData;
@@ -156,31 +158,44 @@ class Value implements \Stringable
 
     public function getCastData(): mixed
     {
-        if (FieldType::INTEGER === $this->getAttribute()->getType()) {
+        $attribute = $this->getAttribute();
+        if ($attribute === null) {
+            return $this->getData();
+        }
+
+        if (FieldType::INTEGER === $attribute->getType()) {
             return intval($this->getData());
         }
 
-        if (FieldType::SINGLE_IMAGE === $this->getAttribute()->getType()) {
+        if (FieldType::SINGLE_IMAGE === $attribute->getType()) {
             $data = $this->getData();
-            $data = json_decode($data, true);
+            if ($data === null) {
+                return null;
+            }
+            $decoded = json_decode($data, true);
+            if (!is_array($decoded)) {
+                return null;
+            }
 
-            return isset($data[0]) ? $data[0]['url'] : null;
+            return isset($decoded[0]['url']) ? $decoded[0]['url'] : null;
         }
 
-        if (FieldType::MULTIPLE_IMAGE === $this->getAttribute()->getType()) {
+        if (FieldType::MULTIPLE_IMAGE === $attribute->getType()) {
             $data = $this->getData();
             if ($data === null || $data === '') {
                 return [];
             }
 
-            $data = json_decode($data, true);
+            $decoded = json_decode($data, true);
             $res = [];
-            if (!is_array($data)) {
+            if (!is_array($decoded)) {
                 return $res;
             }
 
-            foreach ($data as $datum) {
-                $res[] = ArrayHelper::getValue($datum, 'url');
+            foreach ($decoded as $datum) {
+                if (is_array($datum)) {
+                    $res[] = ArrayHelper::getValue($datum, 'url');
+                }
             }
 
             return $res;

@@ -26,12 +26,12 @@ class Tag implements \Stringable
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 60, unique: true, options: ['comment' => '标签名'])]
     private ?string $name = null;
 
     /**
-     * @var Collection<Entity>
+     * @var Collection<int, Entity>
      */
     #[Ignore]
     #[ORM\ManyToMany(targetEntity: Entity::class, inversedBy: 'tags', fetch: 'EXTRA_LAZY')]
@@ -64,7 +64,7 @@ class Tag implements \Stringable
             return '';
         }
 
-        return $this->getName();
+        return $this->getName() ?? '';
     }
 
     public function getId(): ?int

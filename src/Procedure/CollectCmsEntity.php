@@ -20,14 +20,14 @@ use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 use Tourze\UserIDBundle\Model\SystemUser;
 
-#[MethodExpose('CollectCmsEntity')]
-#[MethodTag('内容管理')]
-#[MethodDoc('收藏/反收藏指定文章')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodExpose(method: 'CollectCmsEntity')]
+#[MethodTag(name: '内容管理')]
+#[MethodDoc(summary: '收藏/反收藏指定文章')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class CollectCmsEntity extends LockableProcedure
 {
-    #[MethodParam('文章ID')]
+    #[MethodParam(description: '文章ID')]
     public int $entityId;
 
     public function __construct(
@@ -39,6 +39,9 @@ class CollectCmsEntity extends LockableProcedure
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $entity = $this->entityRepository->findOneBy([
@@ -59,16 +62,19 @@ class CollectCmsEntity extends LockableProcedure
             $log->setUser($this->security->getUser());
         }
 
-        $log->setValid(!$log->isValid());
+        $log->setValid(!($log->isValid() ?? false));
         $this->entityManager->persist($log);
         $this->entityManager->flush();
 
         $event = new CollectEntityEvent();
-        $event->setSender($this->security->getUser());
+        $user = $this->security->getUser();
+        if ($user !== null) {
+            $event->setSender($user);
+        }
         $event->setReceiver(SystemUser::instance());
         $event->setEntity($entity);
 
-        if ($log->isValid()) {
+        if ($log->isValid() === true) {
             $event->setMessage("收藏内容：{$entity->getTitle()}");
         } else {
             $event->setMessage("取消收藏内容：{$entity->getTitle()}");
@@ -77,10 +83,13 @@ class CollectCmsEntity extends LockableProcedure
         $this->eventDispatcher->dispatch($event);
 
         return [
-            '__message' => $log->isValid() ? '收藏成功' : '已取消收藏',
+            '__message' => ($log->isValid() === true) ? '收藏成功' : '已取消收藏',
         ];
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public static function getMockResult(): ?array
     {
         return [

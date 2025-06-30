@@ -29,18 +29,18 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 64, unique: true, options: ['comment' => '代号'])]
     private string $code;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '模型名'])]
     private string $title = '';
 
     /**
      * 关联属性.
      *
-     * @var Collection<Attribute>
+     * @var Collection<int, Attribute>
      */
     #[ORM\OneToMany(mappedBy: 'model', targetEntity: Attribute::class, indexBy: 'name')]
     private Collection $attributes;
@@ -48,38 +48,44 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
     /**
      * 关联记录.
      *
-     * @var Collection<Entity>
+     * @var Collection<int, Entity>
      */
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'model', targetEntity: Entity::class, orphanRemoval: true)]
     private Collection $entities;
 
     /**
-     * @var Collection<Category>
+     * @var Collection<int, Category>
      */
     #[Ignore]
     #[ORM\OneToMany(mappedBy: 'model', targetEntity: Category::class, fetch: 'EXTRA_LAZY')]
     private Collection $categories;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否开放点赞功能'])]
     private bool $allowLike = false;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否开放收藏功能'])]
     private bool $allowCollect = false;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否开放分享功能'])]
     private bool $allowShare = false;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '排序'])]
     private ?int $sortNumber = null;
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '内容列表排序'])]
     private ?array $contentSorts = [];
 
+    /**
+     * @var array<string, mixed>|null
+     */
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '专题列表排序'])]
     private ?array $topicSorts = [];
 
@@ -178,7 +184,7 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
     }
 
     /**
-     * @return Collection<Entity>
+     * @return Collection<int, Entity>
      */
     public function getEntities(): Collection
     {
@@ -208,13 +214,14 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
     }
 
     /**
-     * @return array|Attribute[]
+     * @return array<int, Attribute>
      */
     public function getSortedAttributes(): array
     {
-        $attributes = $this->getAttributes()
-            // ->filter(fn (Attribute $attribute) => (bool) $attribute->isValid())
-            ->toArray();
+        /** @var Collection<int, Attribute> $collection */
+        $collection = $this->getAttributes();
+        /** @var array<int, Attribute> $attributes */
+        $attributes = $collection->toArray();
 
         ArraySorter::multisort($attributes, [
             fn (Attribute $attribute) => $attribute->getDisplayOrder(),
@@ -224,6 +231,7 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
             SORT_ASC,
         ]);
 
+        /** @phpstan-ignore-next-line */
         return $attributes;
     }
 
@@ -335,11 +343,17 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getContentSorts(): ?array
     {
         return $this->contentSorts;
     }
 
+    /**
+     * @param array<string, mixed>|null $contentSorts
+     */
     public function setContentSorts(?array $contentSorts): self
     {
         $this->contentSorts = $contentSorts;
@@ -347,11 +361,17 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getTopicSorts(): ?array
     {
         return $this->topicSorts;
     }
 
+    /**
+     * @param array<string, mixed>|null $topicSorts
+     */
     public function setTopicSorts(?array $topicSorts): self
     {
         $this->topicSorts = $topicSorts;
@@ -364,6 +384,9 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this->getEntities()->count();
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function toSelectItem(): array
     {
         return [
@@ -373,6 +396,9 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getDataArray(): array
     {
         return [
@@ -387,6 +413,9 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveAdminArray(): array
     {
         return [

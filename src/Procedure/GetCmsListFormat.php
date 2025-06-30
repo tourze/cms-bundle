@@ -9,19 +9,19 @@ use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 
-#[MethodTag('内容管理')]
-#[MethodDoc('格式化内容列表')]
-#[MethodExpose('GetCmsListFormat')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodTag(name: '内容管理')]
+#[MethodDoc(summary: '格式化内容列表')]
+#[MethodExpose(method: 'GetCmsListFormat')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 class GetCmsListFormat extends BaseProcedure
 {
-    #[MethodParam('文章目录')]
+    #[MethodParam(description: '文章目录')]
     public ?int $categoryId = null;
 
-    #[MethodParam('模型代号')]
+    #[MethodParam(description: '模型代号')]
     public ?string $modelCode = null;
 
-    #[MethodParam('搜索关键词')]
+    #[MethodParam(description: '搜索关键词')]
     public string $keyword = '';
 
     public function __construct(
@@ -29,6 +29,9 @@ class GetCmsListFormat extends BaseProcedure
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $this->getCmsEntityList->categoryId = $this->categoryId;

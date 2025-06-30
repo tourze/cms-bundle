@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: TagGroupRepository::class)]
@@ -16,15 +17,14 @@ class TagGroup implements \Stringable
 {
     use TimestampableAware;
     use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     #[ORM\Column(length: 60, options: ['comment' => '组名'])]
     private ?string $name = null;
 
+    /**
+     * @var Collection<int, Tag>
+     */
     #[ORM\OneToMany(mappedBy: 'groups', targetEntity: Tag::class)]
     private Collection $tags;
 
@@ -42,10 +42,6 @@ class TagGroup implements \Stringable
         return $this->getName() ?? '';
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function getName(): ?string
     {

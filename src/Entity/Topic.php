@@ -23,28 +23,31 @@ class Topic implements \Stringable
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
     private ?int $id = 0;
 
-    #[Groups(['admin_curd'])]
+    #[Groups(groups: ['admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 120, unique: true, options: ['comment' => '名称'])]
     private ?string $title = null;
 
-    #[Groups(['admin_curd'])]
+    #[Groups(groups: ['admin_curd'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '描述'])]
     private ?string $description = null;
 
-    #[Groups(['admin_curd'])]
+    #[Groups(groups: ['admin_curd'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
 
-    #[Groups(['admin_curd'])]
+    /**
+     * @var array<string, mixed>
+     */
+    #[Groups(groups: ['admin_curd'])]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => 'BANNER'])]
     private array $banners = [];
 
-    #[Groups(['admin_curd'])]
+    #[Groups(groups: ['admin_curd'])]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否推荐'])]
     private ?bool $recommend = null;
 
     /**
-     * @var Collection<Entity>
+     * @var Collection<int, Entity>
      */
     #[ORM\ManyToMany(targetEntity: Entity::class, inversedBy: 'topics', fetch: 'EXTRA_LAZY')]
     private Collection $entities;
@@ -68,7 +71,7 @@ class Topic implements \Stringable
             return '';
         }
 
-        return $this->getTitle();
+        return $this->getTitle() ?? '';
     }
 
     public function getId(): ?int
@@ -136,14 +139,20 @@ class Topic implements \Stringable
         return $this;
     }
 
-    public function getBanners(): ?array
+    /**
+     * @return array<string, mixed>
+     */
+    public function getBanners(): array
     {
         return $this->banners;
     }
 
+    /**
+     * @param array<string, mixed>|null $banners
+     */
     public function setBanners(?array $banners): self
     {
-        $this->banners = $banners;
+        $this->banners = $banners ?? [];
 
         return $this;
     }

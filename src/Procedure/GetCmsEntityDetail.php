@@ -19,12 +19,12 @@ use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 use Tourze\UserIDBundle\Model\SystemUser;
 
-#[MethodTag('内容管理')]
-#[MethodDoc('获取CMS文章详情')]
-#[MethodExpose('GetCmsEntityDetail')]
+#[MethodTag(name: '内容管理')]
+#[MethodDoc(summary: '获取CMS文章详情')]
+#[MethodExpose(method: 'GetCmsEntityDetail')]
 class GetCmsEntityDetail extends BaseProcedure
 {
-    #[MethodParam('文章ID')]
+    #[MethodParam(description: '文章ID')]
     public int $entityId;
 
     public function __construct(
@@ -38,6 +38,9 @@ class GetCmsEntityDetail extends BaseProcedure
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $entity = $this->entityRepository->findOneBy([
@@ -48,7 +51,11 @@ class GetCmsEntityDetail extends BaseProcedure
             throw new ApiException('找不到文章');
         }
 
-        $result = $this->normalizer->normalize($entity, 'array', ['groups' => 'restful_read']);
+        $normalized = $this->normalizer->normalize($entity, 'array', ['groups' => 'restful_read']);
+        if (!is_array($normalized)) {
+            throw new ApiException('序列化失败');
+        }
+        $result = $normalized;
 
         $visitTotal = $this->visitStatRepository->createQueryBuilder('v')
             ->select('SUM(v.value) as visitTotal')
@@ -57,7 +64,7 @@ class GetCmsEntityDetail extends BaseProcedure
             ->getQuery()
             ->getSingleScalarResult();
 
-        $result['visitTotal'] = intval($visitTotal);
+        $result['visitTotal'] = intval($visitTotal ?? 0);
         $result['isLike'] = false;
         $user = $this->security->getUser();
         if ($user !== null) {

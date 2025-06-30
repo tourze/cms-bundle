@@ -42,45 +42,51 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
     /**
      * 下级分类列表.
      *
-     * @var Collection<Category>
+     * @var Collection<int, Category>
      */
-    #[Groups(['restful_read', 'api_tree'])]
-    #[ORM\OneToMany(mappedBy: 'parent', targetEntity: Category::class)]
+    #[Groups(groups: ['restful_read', 'api_tree'])]
+    #[ORM\OneToMany(targetEntity: Category::class, mappedBy: 'parent')]
     private Collection $children;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\ManyToOne(targetEntity: Model::class, inversedBy: 'categories')]
     private ?Model $model = null;
 
     /**
-     * @var Collection<Entity>
+     * @var Collection<int, Entity>
      */
     #[Ignore]
     #[ORM\ManyToMany(targetEntity: Entity::class, mappedBy: 'categories', fetch: 'EXTRA_LAZY')]
     private Collection $entities;
 
-    #[Groups(['restful_read', 'api_tree'])]
+    #[Groups(groups: ['restful_read', 'api_tree'])]
     #[ORM\Column(type: Types::STRING, length: 60, options: ['comment' => '标题'])]
     private string $title = '';
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '描述'])]
     private ?string $description = null;
 
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '缩略图'])]
     private ?string $thumb = null;
 
-    #[Groups(['restful_read'])]
+    /**
+     * @var array<string, mixed>
+     */
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => 'BANNER图'])]
     private array $banners = [];
 
-    #[Groups(['restful_read'])]
+    /**
+     * @var array<string>
+     */
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '热门关键词'])]
     private array $hotKeywords = [];
 
     #[IndexColumn]
-    #[Groups(['admin_curd', 'api_tree', 'restful_read', 'restful_write'])]
+    #[Groups(groups: ['admin_curd', 'api_tree', 'restful_read', 'restful_write'])]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['default' => '0', 'comment' => '次序值'])]
     #[Assert\Type(type: ['numeric'])]
     private ?int $sortNumber = 0;
@@ -216,26 +222,38 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
         return $this;
     }
 
-    public function getBanners(): ?array
+    /**
+     * @return array<string, mixed>
+     */
+    public function getBanners(): array
     {
         return $this->banners;
     }
 
+    /**
+     * @param array<string, mixed>|null $banners
+     */
     public function setBanners(?array $banners): self
     {
-        $this->banners = $banners;
+        $this->banners = $banners ?? [];
 
         return $this;
     }
 
-    public function getHotKeywords(): ?array
+    /**
+     * @return array<string>
+     */
+    public function getHotKeywords(): array
     {
         return $this->hotKeywords;
     }
 
+    /**
+     * @param array<string>|null $hotKeywords
+     */
     public function setHotKeywords(?array $hotKeywords): self
     {
-        $this->hotKeywords = $hotKeywords;
+        $this->hotKeywords = $hotKeywords ?? [];
 
         return $this;
     }
@@ -253,7 +271,7 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
     }
 
     /**
-     * @return Collection<Category>
+     * @return Collection<int, Category>
      */
     public function getChildren(): Collection
     {
@@ -287,6 +305,9 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
         return false;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getDataArray(): array
     {
         $res = [
@@ -319,6 +340,9 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
         return $res;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveAdminArray(): array
     {
         return [
@@ -335,6 +359,9 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveApiArray(): array
     {
         return [
@@ -351,6 +378,9 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveAdminTreeArray(): array
     {
         $children = null;
@@ -365,7 +395,9 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
             ...$this->retrieveAdminArray(),
             'children' => $children,
         ];
-    }public function getSortNumber(): ?int
+    }
+
+    public function getSortNumber(): ?int
     {
         return $this->sortNumber;
     }
@@ -377,6 +409,9 @@ class Category implements \Stringable, AdminArrayInterface, ApiArrayInterface
         return $this;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveSortableArray(): array
     {
         return [

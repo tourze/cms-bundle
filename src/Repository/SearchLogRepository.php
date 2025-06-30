@@ -8,9 +8,11 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method SearchLog|null find($id, $lockMode = null, $lockVersion = null)
- * @method SearchLog|null findOneBy(array $criteria, array $orderBy = null)
+ * @method SearchLog|null findOneBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null)
  * @method SearchLog[]    findAll()
- * @method SearchLog[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method SearchLog[]    findBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends ServiceEntityRepository<SearchLog>
  */
 class SearchLogRepository extends ServiceEntityRepository
 {

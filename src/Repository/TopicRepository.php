@@ -8,9 +8,11 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @method Topic|null find($id, $lockMode = null, $lockVersion = null)
- * @method Topic|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Topic|null findOneBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null)
  * @method Topic[]    findAll()
- * @method Topic[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Topic[]    findBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends ServiceEntityRepository<Topic>
  */
 class TopicRepository extends ServiceEntityRepository
 {

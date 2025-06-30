@@ -22,7 +22,7 @@ class Attribute implements \Stringable
 {
     use TimestampableAware;
     use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
-    
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
@@ -47,19 +47,19 @@ class Attribute implements \Stringable
     private ?Model $model = null;
 
     #[TrackColumn]
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '英文名'])]
     private ?string $name = null;
 
     #[TrackColumn]
-    #[Groups(['restful_read'])]
+    #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '中文名'])]
     private ?string $title = null;
 
     #[TrackColumn]
-    #[Groups(['restful_read'])]
-    #[ORM\Column(type: Types::STRING, length: 32, enumType: FieldType::class, options: ['comment' => '数据类型'])]
-    private FieldType $type;
+    #[Groups(groups: ['restful_read'])]
+    #[ORM\Column(type: Types::STRING, length: 32, enumType: FieldType::class, nullable: true, options: ['comment' => '数据类型'])]
+    private ?FieldType $type = null;
 
     #[TrackColumn]
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true, options: ['comment' => '默认值'])]
@@ -98,11 +98,17 @@ class Attribute implements \Stringable
 
     public function __toString(): string
     {
-        if ($this->getId() === null || $this->getId() === 0) {
+        $name = $this->getName();
+        if ($name === null) {
             return '';
         }
 
-        return "{$this->getTitle()}({$this->getName()})";
+        $title = $this->getTitle();
+        if ($title !== null) {
+            return "{$title}({$name})";
+        }
+
+        return $name;
     }
 
     public function getId(): ?int
@@ -182,12 +188,12 @@ class Attribute implements \Stringable
         return $this;
     }
 
-    public function getType(): FieldType
+    public function getType(): ?FieldType
     {
         return $this->type;
     }
 
-    public function setType(FieldType $type): self
+    public function setType(?FieldType $type): self
     {
         $this->type = $type;
 
@@ -290,24 +296,33 @@ class Attribute implements \Stringable
         return $this;
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
     public function genSelectOptions(EntityManagerInterface $entityManager): array
     {
-        if (!in_array($this->getType(), [FieldType::SINGLE_SELECT, FieldType::MULTIPLE_SELECT, FieldType::TAGS_SELECT])) {
+        $type = $this->getType();
+        if ($type === null || !in_array($type, [FieldType::SINGLE_SELECT, FieldType::MULTIPLE_SELECT, FieldType::TAGS_SELECT])) {
+            return [];
+        }
+
+        $config = $this->getConfig();
+        if ($config === null) {
             return [];
         }
 
         // 一般来说，单选的话，可能是sql也可能是枚举
-        if (class_exists($this->config) && is_subclass_of($this->config, Selectable::class)) {
-            $className = $this->config;
+        if (class_exists($config) && is_subclass_of($config, Selectable::class)) {
+            $className = $config;
             $options = $className::genOptions();
-        } elseif (str_starts_with($this->config, 'Entity') or str_starts_with($this->config, 'SELECT')) {
+        } elseif (str_starts_with($config, 'Entity') or str_starts_with($config, 'SELECT')) {
             // 起码要有查询 label/value
-            if (str_starts_with($this->config, 'Entity')) {
+            if (str_starts_with($config, 'Entity')) {
                 // Entity:cms_entity:label:value
-                $arr = explode(':', $this->config);
+                $arr = explode(':', $config);
                 $sql = "select distinct {$arr[2]} as label,{$arr[3]} as id from {$arr[1]} order by id desc ";
             } else {
-                $sql = $this->config;
+                $sql = $config;
             }
 
             $options = $entityManager->getConnection()->executeQuery($sql)->fetchAllAssociative();
@@ -326,7 +341,7 @@ class Attribute implements \Stringable
             }
         } else {
             // 默认，就一行一个输入咯
-            $lines = explode("\n", $this->config);
+            $lines = explode("\n", $config);
             $options = [];
             foreach ($lines as $line) {
                 $line = trim($line);
@@ -386,4 +401,5 @@ class Attribute implements \Stringable
         $this->placeholder = $placeholder;
 
         return $this;
-    }}
+    }
+}

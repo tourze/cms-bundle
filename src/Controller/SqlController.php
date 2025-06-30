@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class SqlController extends AbstractController
 {
-    #[Route('/cms-model-sql/{code}', name: 'cms-model-sql')]
+    #[Route(path: '/cms-model-sql/{code}', name: 'cms-model-sql')]
     public function __invoke(string $code, ModelRepository $modelRepository, Connection $connection): Response
     {
         $model = $modelRepository->findOneBy([
@@ -31,7 +31,11 @@ class SqlController extends AbstractController
 
         foreach ($model->getSortedAttributes() as $attribute) {
             $alias = "v{$attribute->getId()}";
-            $name = $connection->getDatabasePlatform()->quoteIdentifier($attribute->getName());
+            $attributeName = $attribute->getName();
+            if ($attributeName === null) {
+                continue;
+            }
+            $name = $connection->getDatabasePlatform()->quoteIdentifier($attributeName);
             $sqlLines[] = "LEFT JOIN cms_value AS {$alias} ON (ce.id = {$alias}.entity_id AND {$alias}.attribute_id = '{$attribute->getId()}')";
             $selectParts[] = "{$alias}.data AS {$name}";
         }

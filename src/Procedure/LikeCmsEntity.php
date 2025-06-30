@@ -20,14 +20,14 @@ use Tourze\JsonRPCLockBundle\Procedure\LockableProcedure;
 use Tourze\JsonRPCLogBundle\Attribute\Log;
 use Tourze\UserIDBundle\Model\SystemUser;
 
-#[MethodExpose('LikeCmsEntity')]
-#[MethodTag('内容管理')]
-#[MethodDoc('点赞/取消点赞指定文章')]
-#[IsGranted('IS_AUTHENTICATED_FULLY')]
+#[MethodExpose(method: 'LikeCmsEntity')]
+#[MethodTag(name: '内容管理')]
+#[MethodDoc(summary: '点赞/取消点赞指定文章')]
+#[IsGranted(attribute: 'IS_AUTHENTICATED_FULLY')]
 #[Log]
 class LikeCmsEntity extends LockableProcedure
 {
-    #[MethodParam('文章ID')]
+    #[MethodParam(description: '文章ID')]
     public int $entityId;
 
     public function __construct(
@@ -39,6 +39,9 @@ class LikeCmsEntity extends LockableProcedure
     ) {
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public static function getMockResult(): ?array
     {
         return [
@@ -46,6 +49,9 @@ class LikeCmsEntity extends LockableProcedure
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function execute(): array
     {
         $entity = $this->entityRepository->findOneBy([
@@ -66,16 +72,19 @@ class LikeCmsEntity extends LockableProcedure
             $log->setUser($this->security->getUser());
         }
 
-        $log->setValid(!$log->isValid());
+        $log->setValid(!($log->isValid() ?? false));
         $this->entityManager->persist($log);
         $this->entityManager->flush();
 
         $event = new LikeEntityEvent();
-        $event->setSender($this->security->getUser());
+        $user = $this->security->getUser();
+        if ($user !== null) {
+            $event->setSender($user);
+        }
         $event->setReceiver(SystemUser::instance());
         $event->setEntity($entity);
 
-        if ($log->isValid()) {
+        if ($log->isValid() === true) {
             $event->setMessage("点赞内容：{$entity->getTitle()}");
         } else {
             $event->setMessage("取消点赞内容：{$entity->getTitle()}");
@@ -84,7 +93,7 @@ class LikeCmsEntity extends LockableProcedure
         $this->eventDispatcher->dispatch($event);
 
         return [
-            '__message' => $log->isValid() ? '已点赞' : '已取消点赞',
+            '__message' => ($log->isValid() === true) ? '已点赞' : '已取消点赞',
         ];
     }
 }

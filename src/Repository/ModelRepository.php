@@ -9,9 +9,11 @@ use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 
 /**
  * @method Model|null find($id, $lockMode = null, $lockVersion = null)
- * @method Model|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Model|null findOneBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null)
  * @method Model[]    findAll()
- * @method Model[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Model[]    findBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null, $limit = null, $offset = null)
+ *
+ * @extends ServiceEntityRepository<Model>
  */
 #[Autoconfigure(public: true)]
 class ModelRepository extends ServiceEntityRepository

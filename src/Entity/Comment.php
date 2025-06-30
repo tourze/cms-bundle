@@ -2,6 +2,7 @@
 
 namespace CmsBundle\Entity;
 
+use CmsBundle\Repository\CommentRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -9,20 +10,16 @@ use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
 use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: CommentRepository::class)]
 #[ORM\Table(name: 'cms_comment', options: ['comment' => '评论'])]
 class Comment implements AdminArrayInterface, \Stringable
 {
     use TimestampableAware;
     use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
-    
-    #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
-    #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
-    private ?string $id = null;
+    use SnowflakeKeyAware;
 
     public function __toString(): string
     {
@@ -52,10 +49,6 @@ class Comment implements AdminArrayInterface, \Stringable
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     private ?Entity $entity = null;
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
 
     public function setCreatedBy(?string $createdBy): self
     {
@@ -139,6 +132,9 @@ class Comment implements AdminArrayInterface, \Stringable
         $this->replyUser = $replyUser;
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function retrieveAdminArray(): array
     {
         return [
