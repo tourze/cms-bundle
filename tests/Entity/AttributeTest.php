@@ -1,83 +1,118 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Tests\Entity;
 
 use CmsBundle\Entity\Attribute;
 use CmsBundle\Entity\Model;
 use CmsBundle\Enum\FieldType;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class AttributeTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Attribute::class)]
+final class AttributeTest extends AbstractEntityTestCase
 {
-    private Attribute $attribute;
-
-    protected function setUp(): void
+    /**
+     * @return \Generator<string, array{string, mixed}>
+     */
+    public static function propertiesProvider(): \Generator
     {
-        $this->attribute = new Attribute();
+        yield 'name' => ['name', 'test-attribute'];
+        yield 'title' => ['title', 'Test Attribute'];
+        yield 'type' => ['type', FieldType::STRING];
+        yield 'defaultValue' => ['defaultValue', 'default-value'];
+        yield 'required' => ['required', true];
+        yield 'length' => ['length', 255];
+        yield 'span' => ['span', 12];
+        yield 'searchable' => ['searchable', true];
+        yield 'displayOrder' => ['displayOrder', 10];
+        yield 'config' => ['config', 'test-config'];
+        yield 'importable' => ['importable', true];
+        yield 'placeholder' => ['placeholder', 'test placeholder'];
+        yield 'valid' => ['valid', true];
     }
 
-    public function testGettersAndSetters(): void
+    public function testConstruct(): void
     {
-        $name = 'Test Attribute';
-        $type = FieldType::STRING;
-        $model = $this->createMock(Model::class);
-        $required = true;
-        $displayOrder = 100;
-        $searchable = true;
-
-        $this->attribute->setName($name);
-        $this->attribute->setType($type);
-        $this->attribute->setModel($model);
-        $this->attribute->setRequired($required);
-        $this->attribute->setDisplayOrder($displayOrder);
-        $this->attribute->setSearchable($searchable);
-
-        $this->assertSame($name, $this->attribute->getName());
-        $this->assertSame($type, $this->attribute->getType());
-        $this->assertSame($model, $this->attribute->getModel());
-        $this->assertSame($required, $this->attribute->getRequired());
-        $this->assertSame($displayOrder, $this->attribute->getDisplayOrder());
-        $this->assertSame($searchable, $this->attribute->getSearchable());
+        $attribute = new Attribute();
+        $this->assertInstanceOf(Attribute::class, $attribute);
     }
 
-    public function testStringable(): void
+    public function testSettersAndGetters(): void
     {
-        $this->assertSame('', (string) $this->attribute);
+        $attribute = new Attribute();
 
-        $this->attribute->setName('Test Attribute');
-        $this->assertSame('Test Attribute', (string) $this->attribute);
+        $attribute->setName('test-name');
+        $this->assertSame('test-name', $attribute->getName());
+
+        $attribute->setTitle('Test Title');
+        $this->assertSame('Test Title', $attribute->getTitle());
+
+        $attribute->setType(FieldType::TEXT);
+        $this->assertSame(FieldType::TEXT, $attribute->getType());
+
+        $attribute->setDefaultValue('default-value');
+        $this->assertSame('default-value', $attribute->getDefaultValue());
+
+        $attribute->setRequired(true);
+        $this->assertTrue($attribute->getRequired());
+
+        $attribute->setLength(255);
+        $this->assertSame(255, $attribute->getLength());
+
+        $attribute->setSpan(12);
+        $this->assertSame(12, $attribute->getSpan());
+
+        $attribute->setSearchable(true);
+        $this->assertTrue($attribute->getSearchable());
+
+        $attribute->setDisplayOrder(10);
+        $this->assertSame(10, $attribute->getDisplayOrder());
+
+        $attribute->setConfig('test-config');
+        $this->assertSame('test-config', $attribute->getConfig());
+
+        $attribute->setImportable(true);
+        $this->assertTrue($attribute->isImportable());
+
+        $attribute->setPlaceholder('test placeholder');
+        $this->assertSame('test placeholder', $attribute->getPlaceholder());
+
+        $attribute->setValid(true);
+        $this->assertTrue($attribute->isValid());
     }
 
-    public function testInitialValues(): void
+    public function testModelRelation(): void
     {
-        $this->assertSame(0, $this->attribute->getId());
-        $this->assertNull($this->attribute->getName());
+        $attribute = new Attribute();
+        $model = new Model();
 
-        // Debug output
-        $type = $this->attribute->getType();
-        if ($type !== null) {
-            echo "Type is not null, actual value: " . var_export($type, true) . "\n";
-            echo "Type class: " . get_class($type) . "\n";
-        }
-
-        $this->assertNull($this->attribute->getType());
-        $this->assertNull($this->attribute->getModel());
-        $this->assertNull($this->attribute->getRequired());
-        $this->assertSame(0, $this->attribute->getDisplayOrder());
-        $this->assertFalse($this->attribute->getSearchable());
+        $attribute->setModel($model);
+        $this->assertSame($model, $attribute->getModel());
     }
 
-    public function testFluentInterface(): void
+    public function testToString(): void
     {
-        $name = 'Test Attribute';
-        $type = FieldType::STRING;
-        $model = $this->createMock(Model::class);
+        $attribute = new Attribute();
+        $attribute->setName('test-name');
+        $attribute->setTitle('Test Title');
 
-        $result = $this->attribute
-            ->setName($name)
-            ->setType($type)
-            ->setModel($model);
+        $this->assertSame('Test Title(test-name)', (string) $attribute);
 
-        $this->assertSame($this->attribute, $result);
+        $attributeWithoutTitle = new Attribute();
+        $attributeWithoutTitle->setName('test-name');
+        $this->assertSame('test-name', (string) $attributeWithoutTitle);
+
+        $emptyAttribute = new Attribute();
+        $this->assertSame('', (string) $emptyAttribute);
+    }
+
+    protected function createEntity(): Attribute
+    {
+        return new Attribute();
     }
 }

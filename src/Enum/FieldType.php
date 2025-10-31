@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Enum;
 
-use Carbon\CarbonImmutable;
 use CmsBundle\Entity\Attribute;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
@@ -34,53 +35,86 @@ enum FieldType: string implements Labelable, Itemable, Selectable
     {
         return match ($this) {
             self::DATE => '日期',
-            self::DATE_TIME => '日期+时间',
+            self::DATE_TIME => '日期时间',
             self::DECIMAL => '小数',
             self::INTEGER => '整数',
             self::STRING => '字符串',
-            self::TEXT => '长文本',
+            self::TEXT => '文本',
             self::RICH_TEXT => '富文本',
-            self::SINGLE_IMAGE => '单图',
-            self::MULTIPLE_IMAGE => '多图',
-            self::SINGLE_FILE => '单文件',
-            self::SINGLE_SELECT => '下拉单选',
-            self::MULTIPLE_SELECT => '下拉多选',
-            self::TAGS_SELECT => '下拉多选(可自由添加)',
+            self::SINGLE_IMAGE => '单个图片',
+            self::MULTIPLE_IMAGE => '多个图片',
+            self::SINGLE_FILE => '单个文件',
+            self::SINGLE_SELECT => '单选',
+            self::MULTIPLE_SELECT => '多选',
+            self::TAGS_SELECT => '标签选择',
             self::FORMULA => '公式',
         };
     }
 
-    public static function getStorableValue(Attribute $attribute, mixed $data): string
+    /**
+     * 获取所有枚举的选项数组（用于下拉列表等）.
+     *
+     * @return array<int, array{value: string, label: string}>
+     */
+    public static function toSelectItems(): array
     {
-        switch ($attribute->getType()) {
-            case self::DATE:
-                if (is_integer($data)) {
-                    $data = CarbonImmutable::createFromTimestamp($data, date_default_timezone_get())->format('Y-m-d');
-                }
-
-                break;
-            case self::DATE_TIME:
-                if (is_integer($data)) {
-                    $data = CarbonImmutable::createFromTimestamp($data, date_default_timezone_get())->format('Y-m-d H:i:s');
-                }
-
-                break;
-            case self::SINGLE_FILE:
-            case self::SINGLE_IMAGE:
-            case self::MULTIPLE_IMAGE:
-                $data = json_encode($data);
-                break;
-            case self::DECIMAL:
-            case self::INTEGER:
-                $data = (string) $data;
-                break;
-            case self::MULTIPLE_SELECT:
-            case self::TAGS_SELECT:
-                if (is_array($data)) {
-                    $data = implode(',', $data);
-                }
+        $result = [];
+        foreach (self::cases() as $case) {
+            $result[] = [
+                'value' => $case->value,
+                'label' => $case->getLabel(),
+            ];
         }
 
-        return (string) $data;
+        return $result;
+    }
+
+    /**
+     * 获取可存储的值
+     */
+    public static function getStorableValue(Attribute $attribute, mixed $value): mixed
+    {
+        $type = $attribute->getType();
+
+        return match ($type) {
+            self::STRING, self::TEXT, self::RICH_TEXT => \is_scalar($value) || null === $value ? (string) $value : '',
+            self::INTEGER => is_numeric($value) ? (int) $value : 0,
+            self::DECIMAL => \is_scalar($value) || null === $value ? (string) $value : '0',
+            self::DATE => $value instanceof \DateTimeInterface
+                ? $value->format('Y-m-d')
+                : self::convertToDateString($value),
+            self::DATE_TIME => $value instanceof \DateTimeInterface
+                ? $value->format('Y-m-d H:i:s')
+                : self::convertToDateTimeString($value),
+            default => $value,
+        };
+    }
+
+    /**
+     * 转换值为日期字符串.
+     */
+    private static function convertToDateString(mixed $value): string
+    {
+        if (is_numeric($value)) {
+            return date('Y-m-d', (int) $value);
+        }
+
+        $timestamp = strtotime(\is_scalar($value) || null === $value ? (string) $value : '');
+
+        return false !== $timestamp ? date('Y-m-d', $timestamp) : date('Y-m-d');
+    }
+
+    /**
+     * 转换值为日期时间字符串.
+     */
+    private static function convertToDateTimeString(mixed $value): string
+    {
+        if (is_numeric($value)) {
+            return date('Y-m-d H:i:s', (int) $value);
+        }
+
+        $timestamp = strtotime(\is_scalar($value) || null === $value ? (string) $value : '');
+
+        return false !== $timestamp ? date('Y-m-d H:i:s', $timestamp) : date('Y-m-d H:i:s');
     }
 }

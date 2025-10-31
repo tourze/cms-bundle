@@ -1,23 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Procedure;
 
-use CmsBundle\Entity\Category;
 use CmsBundle\Entity\Entity;
 use CmsBundle\Entity\Model;
-use CmsBundle\Repository\CategoryRepository;
-use CmsBundle\Repository\EntityRepository;
-use CmsBundle\Repository\LikeLogRepository;
-use CmsBundle\Repository\ModelRepository;
-use CmsBundle\Repository\VisitStatRepository;
 use CmsBundle\Service\ContentService;
-use Doctrine\Common\Collections\Criteria;
+use CmsBundle\Service\EntityService;
+use CmsBundle\Service\ModelService;
+use CmsBundle\Service\StatService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+use Tourze\CatalogBundle\Entity\Catalog;
+use Tourze\CatalogBundle\Service\CatalogService;
+use Tourze\CmsLikeBundle\Service\LikeService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
 use Tourze\JsonRPCPaginatorBundle\Procedure\PaginatorTrait;
 use Yiisoft\Arrays\ArrayHelper;
@@ -30,7 +32,7 @@ class GetCmsEntityList extends BaseProcedure
     use PaginatorTrait;
 
     #[MethodParam(description: '文章目录')]
-    public ?int $categoryId = null;
+    public string|int|null $catalogId = null;
 
     #[MethodParam(description: '模型代号')]
     public ?string $modelCode = null;
@@ -39,14 +41,14 @@ class GetCmsEntityList extends BaseProcedure
     public string $keyword = '';
 
     public function __construct(
-        private readonly CategoryRepository $categoryRepository,
-        private readonly ModelRepository $modelRepository,
-        private readonly EntityRepository $entityRepository,
+        private readonly CatalogService $catalogService,
+        private readonly ModelService $modelService,
+        private readonly EntityService $entityService,
         private readonly NormalizerInterface $normalizer,
         private readonly ContentService $contentService,
-        private readonly VisitStatRepository $visitStatRepository,
+        private readonly StatService $statService,
         private readonly Security $security,
-        private readonly LikeLogRepository $likeLogRepository,
+        private readonly LikeService $likeService,
     ) {
     }
 
@@ -56,32 +58,31 @@ class GetCmsEntityList extends BaseProcedure
     public function execute(): array
     {
         $user = $this->security->getUser();
-        $qb = $this->entityRepository
-            ->createQueryBuilder('a')
-            ->where("a.state = 'published'")
-            ->addOrderBy('a.sortNumber', Criteria::DESC)
-            ->addOrderBy('a.id', Criteria::DESC);
+        $qb = $this->entityService->createPublishedEntitiesQueryBuilder();
 
         // 查找指定目录
-        if ($this->categoryId !== null) {
-            $categories = $this->categoryRepository->findBy(['id' => $this->categoryId]);
-            $qb->innerJoin('a.categories', 'c');
-            $qb->andWhere('c.id IN (:categories)');
-            $qb->setParameter('categories', ArrayHelper::getColumn($categories, fn (Category $category) => $category->getId()));
+        if (null !== $this->catalogId) {
+            $catalogs = $this->catalogService->findBy(['id' => $this->catalogId]);
+            if ([] === $catalogs) {
+                throw new ApiException('目录不存在');
+            }
+            $qb->innerJoin('a.catalogs', 'c');
+            $qb->andWhere('c.id IN (:catalogs)');
+            $qb->setParameter('catalogs', ArrayHelper::getColumn($catalogs, fn (Catalog $catalog) => $catalog->getId()));
         }
 
-        if (!empty($this->keyword)) {
+        if ('' !== $this->keyword) {
             $qb->andWhere('a.title LIKE :title')->setParameter('title', "%{$this->keyword}%");
         }
 
         // 查找指定模型
-        if ($this->modelCode !== null) {
-            $models = $this->modelRepository->findBy(['code' => $this->modelCode]);
+        if (null !== $this->modelCode) {
+            $models = $this->modelService->findBy(['code' => $this->modelCode]);
             $qb->innerJoin('a.model', 'm');
             $qb->andWhere('m.id IN (:models)');
             $qb->setParameter('models', ArrayHelper::getColumn($models, fn (Model $category) => $category->getId()));
 
-            if (!empty($this->keyword)) {
+            if ('' !== $this->keyword) {
                 foreach ($models as $model) {
                     $this->contentService->searchByKeyword($qb, $this->keyword, $model);
                 }
@@ -92,20 +93,14 @@ class GetCmsEntityList extends BaseProcedure
     }
 
     /**
-     * @param mixed $user
      * @return array<string, mixed>
      */
-    private function format(Entity $item, $user): array
+    private function format(Entity $item, mixed $user): array
     {
-        $visitTotal = $this->visitStatRepository->createQueryBuilder('v')
-            ->select('SUM(v.value) as visitTotal')
-            ->where('v.entityId = :entityId')
-            ->setParameter('entityId', $item->getId())
-            ->getQuery()
-            ->getSingleScalarResult();
+        $visitTotal = $this->statService->getVisitTotal($item);
         $isLike = false;
-        if ($user !== null) {
-            $log = $this->likeLogRepository->findOneBy([
+        if (null !== $user) {
+            $log = $this->likeService->findLikeLogBy([
                 'entity' => $item,
                 'valid' => true,
                 'user' => $this->security->getUser(),
@@ -114,11 +109,12 @@ class GetCmsEntityList extends BaseProcedure
         }
 
         $normalized = $this->normalizer->normalize($item, 'array', ['groups' => 'restful_read']);
-        if (!is_array($normalized)) {
+        if (!\is_array($normalized)) {
             $normalized = [];
         }
+        /** @var array<string, mixed> $result */
         $result = $normalized;
-        $result['visitTotal'] = intval($visitTotal ?? 0);
+        $result['visitTotal'] = $visitTotal;
         $result['isLike'] = $isLike;
 
         return $result;

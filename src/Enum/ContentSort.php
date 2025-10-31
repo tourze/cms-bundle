@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
@@ -9,7 +11,7 @@ use Tourze\EnumExtra\Selectable;
 use Tourze\EnumExtra\SelectTrait;
 
 /**
- * 内容列表排序枚举
+ * 内容列表排序枚举.
  */
 enum ContentSort: string implements Labelable, Itemable, Selectable
 {

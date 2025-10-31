@@ -1,63 +1,71 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Service;
 
 use CmsBundle\Entity\Model;
-use CmsBundle\Repository\ModelRepository;
-use CmsBundle\Repository\ValueRepository;
 use Doctrine\ORM\QueryBuilder;
 
-class ContentService
+readonly class ContentService
 {
     public function __construct(
-        private readonly ValueRepository $valueRepository,
-        private readonly ModelRepository $modelRepository,
+        private ValueService $valueService,
+        private ModelService $modelService,
     ) {
     }
 
     /**
-     * 搜索指定模型的关键词数据列表
+     * 搜索指定模型的关键词数据列表.
      */
     public function searchByKeyword(QueryBuilder $queryBuilder, string $keyword, ?Model $model = null): void
     {
-        if ($model === null) {
-            $models = $this->modelRepository->findBy(['valid' => true]);
-        } else {
-            $models = [$model];
-        }
+        $models = $this->resolveModels($model);
+        $searchableAttributes = $this->extractSearchableAttributes($models);
 
-        $searchableAttributes = [];
-        foreach ($models as $mdl) {
-            foreach ($mdl->getAttributes() as $attribute) {
-                if (!($attribute->getSearchable() ?? false)) {
-                    continue;
-                }
-
-                $searchableAttributes[] = $attribute->getId();
-            }
-        }
-
-        if (empty($searchableAttributes)) {
+        if ([] === $searchableAttributes) {
             return;
         }
 
-        // SELECT IDENTITY(v.entity) FROM Value AS v WHERE v.attribute in [:attribute] AND v.data LIKE '%TEST%'
-        $subQuery = $this->valueRepository->createQueryBuilder('v');
-        $subQuery->select('IDENTITY(v.entity)');
-        $subQuery->where(
-            $subQuery->expr()->in(
-                'v.attribute',
-                $searchableAttributes
-            )
-        );
-        $subQuery->andWhere(
-            $subQuery->expr()->like(
-                'v.data',
-                $subQuery->expr()->literal("%{$keyword}%")
-            )
-        );
-
-        // 补充查询
+        $subQuery = $this->buildSearchSubQuery($searchableAttributes, $keyword);
         $queryBuilder->andWhere($queryBuilder->expr()->in('a.id', $subQuery->getDQL()));
+    }
+
+    /**
+     * @return array<Model>
+     */
+    private function resolveModels(?Model $model): array
+    {
+        return null === $model ? $this->modelService->findAllValidModels() : [$model];
+    }
+
+    /**
+     * @param array<Model> $models
+     *
+     * @return array<int>
+     */
+    private function extractSearchableAttributes(array $models): array
+    {
+        $searchableAttributes = [];
+        foreach ($models as $mdl) {
+            foreach ($mdl->getAttributes() as $attribute) {
+                if ($attribute->getSearchable() ?? false) {
+                    $attributeId = $attribute->getId();
+                    if (null !== $attributeId) {
+                        $searchableAttributes[] = $attributeId;
+                    }
+                }
+            }
+        }
+
+        return $searchableAttributes;
+    }
+
+    /**
+     * @param array<int> $searchableAttributes
+     */
+    private function buildSearchSubQuery(array $searchableAttributes, string $keyword): QueryBuilder
+    {
+        return $this->valueService->buildSearchSubQuery($searchableAttributes, $keyword);
     }
 }

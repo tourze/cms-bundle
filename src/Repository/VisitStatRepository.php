@@ -1,23 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Repository;
 
 use CmsBundle\Entity\VisitStat;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 
 /**
- * @method VisitStat|null find($id, $lockMode = null, $lockVersion = null)
- * @method VisitStat|null findOneBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null)
- * @method VisitStat[]    findAll()
- * @method VisitStat[]    findBy(array<string, mixed> $criteria, array<string, mixed>|null $orderBy = null, $limit = null, $offset = null)
- *
  * @extends ServiceEntityRepository<VisitStat>
  */
+#[AsRepository(entityClass: VisitStat::class)]
 class VisitStatRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, VisitStat::class);
+    }
+
+    public function save(VisitStat $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(VisitStat $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
     }
 }

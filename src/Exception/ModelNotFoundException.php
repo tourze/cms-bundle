@@ -1,13 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Exception;
 
-use RuntimeException;
-
 /**
- * 当CMS模型未找到时抛出的异常
+ * 当CMS模型未找到时抛出的异常.
  */
-class ModelNotFoundException extends RuntimeException
+class ModelNotFoundException extends \RuntimeException
 {
     public function __construct(string $modelCode, ?\Throwable $previous = null)
     {

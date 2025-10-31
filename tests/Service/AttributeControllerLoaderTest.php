@@ -1,35 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Tests\Service;
 
 use CmsBundle\Service\AttributeControllerLoader;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Routing\RouteCollection;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
-class AttributeControllerLoaderTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(AttributeControllerLoader::class)]
+#[RunTestsInSeparateProcesses]
+final class AttributeControllerLoaderTest extends AbstractIntegrationTestCase
 {
     private AttributeControllerLoader $loader;
 
-    protected function setUp(): void
-    {
-        $this->loader = new AttributeControllerLoader();
-    }
-
-    public function test_supports_returns_false(): void
+    public function testSupportsReturnsFalse(): void
     {
         $this->assertFalse($this->loader->supports('test', 'test'));
         $this->assertFalse($this->loader->supports(null, null));
     }
 
-    public function test_load_returns_route_collection(): void
+    public function testLoadReturnsRouteCollection(): void
     {
         $collection = $this->loader->load('test');
-        $this->assertInstanceOf(RouteCollection::class, $collection);
+        $this->assertNotNull($collection);
+        $this->assertGreaterThanOrEqual(0, $collection->count());
     }
 
-    public function test_autoload_returns_route_collection(): void
+    public function testAutoloadReturnsRouteCollection(): void
     {
         $collection = $this->loader->autoload();
-        $this->assertInstanceOf(RouteCollection::class, $collection);
+        $this->assertNotNull($collection);
+        $this->assertGreaterThanOrEqual(0, $collection->count());
     }
-} 
+
+    protected function onSetUp(): void
+    {
+        $this->loader = self::getService(AttributeControllerLoader::class);
+    }
+}

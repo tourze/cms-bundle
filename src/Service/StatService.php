@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Service;
 
 use Carbon\CarbonImmutable;
@@ -7,28 +9,43 @@ use CmsBundle\Entity\Entity;
 use CmsBundle\Entity\VisitStat;
 use CmsBundle\Repository\VisitStatRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Tourze\DoctrineEntityLockBundle\Service\EntityLockService;
-use Tourze\Symfony\AopAsyncBundle\Attribute\Async;
 
-class StatService
+#[WithMonologChannel(channel: 'cms')]
+readonly class StatService
 {
     public function __construct(
-        private readonly VisitStatRepository $visitStatRepository,
-        private readonly LoggerInterface $logger,
-        private readonly EntityLockService $entityLockService,
-        private readonly EntityManagerInterface $entityManager,
+        private VisitStatRepository $visitStatRepository,
+        private LoggerInterface $logger,
+        private EntityManagerInterface $entityManager,
+        private ?EntityLockService $entityLockService = null,
     ) {
     }
 
     /**
-     * 更新统计信息
+     * 获取实体的访问总量.
      */
-    #[Async]
+    public function getVisitTotal(Entity $entity): int
+    {
+        $visitTotal = $this->visitStatRepository->createQueryBuilder('v')
+            ->select('SUM(v.value) as visitTotal')
+            ->where('v.entityId = :entityId')
+            ->setParameter('entityId', $entity->getId())
+            ->getQuery()
+            ->getSingleScalarResult()
+        ;
+
+        return (int) ($visitTotal ?? 0);
+    }
+
+    /**
+     * 更新统计信息.
+     */
     public function updateStat(Entity $entity): void
     {
-        // 加个锁，减少重复可能
-        $this->entityLockService->lockEntity($entity, function () use ($entity) {
+        $updateLogic = function () use ($entity): void {
             $date = CarbonImmutable::now()->startOfDay();
 
             // 更新统计
@@ -36,7 +53,7 @@ class StatService
                 'entityId' => $entity->getId(),
                 'date' => $date,
             ]);
-            if ($stat === null) {
+            if (null === $stat) {
                 $stat = new VisitStat();
                 $stat->setEntityId((string) $entity->getId());
                 $stat->setDate($date);
@@ -51,6 +68,13 @@ class StatService
                     'exception' => $exception,
                 ]);
             }
-        });
+        };
+
+        // 如果有锁服务，使用锁，否则直接执行
+        if (null !== $this->entityLockService) {
+            $this->entityLockService->lockEntity($entity, $updateLogic);
+        } else {
+            $updateLogic();
+        }
     }
 }

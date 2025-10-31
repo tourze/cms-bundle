@@ -1,28 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Tests\Exception;
 
 use CmsBundle\Exception\ModelNotFoundException;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitBase\AbstractExceptionTestCase;
 
-class ModelNotFoundExceptionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(ModelNotFoundException::class)]
+final class ModelNotFoundExceptionTest extends AbstractExceptionTestCase
 {
-    public function testExceptionMessage(): void
+    protected function getExceptionClass(): string
     {
-        $modelCode = 'test-model';
-        $exception = new ModelNotFoundException($modelCode);
-
-        $this->assertSame("找不到指定CMS模型: {$modelCode}", $exception->getMessage());
-        $this->assertSame(0, $exception->getCode());
+        return ModelNotFoundException::class;
     }
 
-    public function testExceptionWithPrevious(): void
+    protected function getParentExceptionClass(): string
     {
-        $modelCode = 'test-model';
-        $previous = new \RuntimeException('Previous exception');
-        $exception = new ModelNotFoundException($modelCode, $previous);
-
-        $this->assertSame("找不到指定CMS模型: {$modelCode}", $exception->getMessage());
-        $this->assertSame($previous, $exception->getPrevious());
+        return \RuntimeException::class;
     }
 }

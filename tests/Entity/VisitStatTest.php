@@ -1,67 +1,96 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Tests\Entity;
 
 use CmsBundle\Entity\VisitStat;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class VisitStatTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(VisitStat::class)]
+final class VisitStatTest extends AbstractEntityTestCase
 {
-    private VisitStat $visitStat;
-
-    protected function setUp(): void
+    /**
+     * @return \Generator<string, array{string, mixed}>
+     */
+    public static function propertiesProvider(): \Generator
     {
-        $this->visitStat = new VisitStat();
+        yield 'value' => ['value', 100];
     }
 
-    public function testGettersAndSetters(): void
+    /**
+     * @return iterable<array{string, mixed}>
+     */
+    public static function propertiesProviderWithTypes(): iterable
     {
+        yield 'value' => ['value', 100];
+    }
+
+    public function testVisitStatGettersAndSetters(): void
+    {
+        $visitStat = new VisitStat();
         $date = new \DateTimeImmutable('2024-01-01');
         $entityId = '123456789';
         $value = 100;
 
-        $this->visitStat->setDate($date);
-        $this->visitStat->setEntityId($entityId);
-        $this->visitStat->setValue($value);
+        $visitStat->setDate($date);
+        $visitStat->setEntityId($entityId);
+        $visitStat->setValue($value);
 
-        $this->assertSame($date, $this->visitStat->getDate());
-        $this->assertSame($entityId, $this->visitStat->getEntityId());
-        $this->assertSame($value, $this->visitStat->getValue());
+        $this->assertSame($date, $visitStat->getDate());
+        $this->assertSame($entityId, $visitStat->getEntityId());
+        $this->assertSame($value, $visitStat->getValue());
     }
 
     public function testStringable(): void
     {
         // 测试空ID时返回空字符串
-        $this->assertSame('', (string) $this->visitStat);
+        $visitStat = new VisitStat();
+        $this->assertSame('', (string) $visitStat);
     }
 
     public function testInitialValues(): void
     {
-        $this->assertNull($this->visitStat->getId());
-        $this->assertNull($this->visitStat->getDate());
-        $this->assertNull($this->visitStat->getEntityId());
-        $this->assertNull($this->visitStat->getValue());
+        $visitStat = new VisitStat();
+        $this->assertNull($visitStat->getId());
+        $this->assertNull($visitStat->getDate());
+        $this->assertNull($visitStat->getEntityId());
+        $this->assertNull($visitStat->getValue());
     }
 
     public function testSetEntityIdWithNull(): void
     {
-        $this->visitStat->setEntityId('123');
-        $this->visitStat->setEntityId(null);
+        $visitStat = new VisitStat();
+        $visitStat->setEntityId('123');
+        $visitStat->setEntityId(null);
 
-        $this->assertNull($this->visitStat->getEntityId());
+        $this->assertNull($visitStat->getEntityId());
     }
 
     public function testFluentInterface(): void
     {
+        $visitStat = new VisitStat();
         $date = new \DateTimeImmutable('2024-01-01');
         $entityId = '123456789';
         $value = 100;
 
-        $result = $this->visitStat
-            ->setDate($date)
-            ->setEntityId($entityId)
-            ->setValue($value);
+        // 分别调用方法而不是链式调用，因为 setEntityId 返回 void
+        $visitStat->setDate($date);
+        $visitStat->setEntityId($entityId);
+        $visitStat->setValue($value);
 
-        $this->assertSame($this->visitStat, $result);
+        // 验证所有值都正确设置
+        $this->assertSame($date, $visitStat->getDate());
+        $this->assertSame($entityId, $visitStat->getEntityId());
+        $this->assertSame($value, $visitStat->getValue());
+    }
+
+    protected function createEntity(): VisitStat
+    {
+        return new VisitStat();
     }
 }

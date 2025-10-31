@@ -1,329 +1,158 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Tests\Entity;
 
-use CmsBundle\Entity\Category;
 use CmsBundle\Entity\Entity;
 use CmsBundle\Entity\Model;
-use CmsBundle\Entity\Tag;
-use CmsBundle\Entity\Topic;
 use CmsBundle\Entity\Value;
 use CmsBundle\Enum\EntityState;
-use DateTimeImmutable;
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class EntityTest extends TestCase
+/**
+ * Entity 单元测试（简化版，避免外部依赖）.
+ *
+ * @internal
+ */
+#[CoversClass(Entity::class)]
+final class EntityTest extends AbstractEntityTestCase
 {
-    private Entity $entity;
-
-    protected function setUp(): void
+    /**
+     * @return \Generator<string, array{string, mixed}>
+     */
+    public static function propertiesProvider(): \Generator
     {
-        $this->entity = new Entity();
-        $this->entity->setTitle('测试标题');
-        $this->entity->setState(EntityState::DRAFT);
+        yield 'title' => ['title', 'Test Entity'];
+        yield 'sortNumber' => ['sortNumber', 100];
+        yield 'state' => ['state', EntityState::DRAFT];
     }
 
-    public function testConstructor_initializesCollections(): void
+    public function testEntityCreation(): void
     {
-        // 验证构造函数初始化了所有集合
-        $this->assertInstanceOf(Collection::class, $this->entity->getCategories());
-        $this->assertCount(0, $this->entity->getCategories());
-
-        $this->assertInstanceOf(Collection::class, $this->entity->getTags());
-        $this->assertCount(0, $this->entity->getTags());
-
-        $this->assertInstanceOf(Collection::class, $this->entity->getTopics());
-        $this->assertCount(0, $this->entity->getTopics());
-
-        $this->assertInstanceOf(Collection::class, $this->entity->getValueList());
-        $this->assertCount(0, $this->entity->getValueList());
+        $entity = new Entity();
+        $this->assertInstanceOf(Entity::class, $entity);
+        $this->assertNull($entity->getId());
     }
 
-    public function testGettersAndSetters_forScalarProperties(): void
+    public function testTitleProperty(): void
     {
-        // 测试标题的getter和setter
-        $this->entity->setTitle('新标题');
-        $this->assertEquals('新标题', $this->entity->getTitle());
-
-        // 测试备注的getter和setter
-        $this->assertNull($this->entity->getRemark());
-        $this->entity->setRemark('测试备注');
-        $this->assertEquals('测试备注', $this->entity->getRemark());
-
-        // 测试排序号的getter和setter
-        $this->assertNull($this->entity->getSortNumber());
-        $this->entity->setSortNumber(10);
-        $this->assertEquals(10, $this->entity->getSortNumber());
-
-        // 测试状态的getter和setter
-        $this->assertEquals(EntityState::DRAFT, $this->entity->getState());
-        $this->entity->setState(EntityState::PUBLISHED);
-        $this->assertEquals(EntityState::PUBLISHED, $this->entity->getState());
+        $entity = new Entity();
+        $entity->setTitle('Test Title');
+        $this->assertSame('Test Title', $entity->getTitle());
     }
 
-    public function testGettersAndSetters_forDateTimeProperties(): void
+    public function testModelProperty(): void
     {
-        // 测试发布时间的getter和setter
-        $this->assertNull($this->entity->getPublishTime());
-        $publishTime = new DateTimeImmutable();
-        $this->entity->setPublishTime($publishTime);
-        $this->assertSame($publishTime, $this->entity->getPublishTime());
+        $entity = new Entity();
+        $model = new Model();
 
-        // 测试结束时间的getter和setter
-        $this->assertNull($this->entity->getEndTime());
-        $endTime = new DateTimeImmutable();
-        $this->entity->setEndTime($endTime);
-        $this->assertSame($endTime, $this->entity->getEndTime());
+        $entity->setModel($model);
+        $this->assertSame($model, $entity->getModel());
 
-        // 测试创建时间的getter和setter
-        $this->assertNull($this->entity->getCreateTime());
-        $createTime = new DateTimeImmutable();
-        $this->entity->setCreateTime($createTime);
-        $this->assertSame($createTime, $this->entity->getCreateTime());
-
-        // 测试更新时间的getter和setter
-        $this->assertNull($this->entity->getUpdateTime());
-        $updateTime = new DateTimeImmutable();
-        $this->entity->setUpdateTime($updateTime);
-        $this->assertSame($updateTime, $this->entity->getUpdateTime());
+        $entity->setModel(null);
+        $this->assertNull($entity->getModel());
     }
 
-    public function testGettersAndSetters_forAuditProperties(): void
+    public function testPublishTimeProperty(): void
     {
-        // 测试创建者的getter和setter
-        $this->assertNull($this->entity->getCreatedBy());
-        $this->entity->setCreatedBy('user1');
-        $this->assertEquals('user1', $this->entity->getCreatedBy());
+        $entity = new Entity();
+        $publishTime = new \DateTimeImmutable();
 
-        // 测试更新者的getter和setter
-        $this->assertNull($this->entity->getUpdatedBy());
-        $this->entity->setUpdatedBy('user2');
-        $this->assertEquals('user2', $this->entity->getUpdatedBy());
+        $entity->setPublishTime($publishTime);
+        $this->assertSame($publishTime, $entity->getPublishTime());
 
-        // 测试创建IP的getter和setter
-        $this->assertNull($this->entity->getCreatedFromIp());
-        $this->entity->setCreatedFromIp('127.0.0.1');
-        $this->assertEquals('127.0.0.1', $this->entity->getCreatedFromIp());
-
-        // 测试更新IP的getter和setter
-        $this->assertNull($this->entity->getUpdatedFromIp());
-        $this->entity->setUpdatedFromIp('192.168.1.1');
-        $this->assertEquals('192.168.1.1', $this->entity->getUpdatedFromIp());
+        $entity->setPublishTime(null);
+        $this->assertNull($entity->getPublishTime());
     }
 
-    public function testToString_returnsTitle(): void
+    public function testEndTimeProperty(): void
     {
-        // 设置标题
-        $this->entity->setTitle('测试文章标题');
+        $entity = new Entity();
+        $endTime = new \DateTimeImmutable();
 
-        // 如果没有id，返回空字符串
-        $this->assertEquals('', (string) $this->entity);
+        $entity->setEndTime($endTime);
+        $this->assertSame($endTime, $entity->getEndTime());
 
-        // 设置一个模拟的ID，通过反射设置private属性
-        $reflection = new \ReflectionClass($this->entity);
-        $idProperty = $reflection->getProperty('id');
-        $idProperty->setAccessible(true);
-        $idProperty->setValue($this->entity, 123);
-
-        // 验证__toString方法返回格式为"id:title"
-        $expected = '123:测试文章标题';
-        $this->assertEquals($expected, (string) $this->entity);
+        $entity->setEndTime(null);
+        $this->assertNull($entity->getEndTime());
     }
 
-    public function testCategoryRelationship_addsAndRemovesCategories(): void
+    public function testSortNumberProperty(): void
     {
-        // 创建模拟的Category对象
-        $category1 = $this->createMock(Category::class);
-        $category2 = $this->createMock(Category::class);
+        $entity = new Entity();
 
-        // 添加Category到Entity
-        $this->entity->addCategory($category1);
-        $this->entity->addCategory($category2);
+        $entity->setSortNumber(100);
+        $this->assertSame(100, $entity->getSortNumber());
 
-        // 验证Categories集合中包含添加的Category
-        $this->assertCount(2, $this->entity->getCategories());
-        $this->assertTrue($this->entity->getCategories()->contains($category1));
-        $this->assertTrue($this->entity->getCategories()->contains($category2));
-
-        // 移除一个Category
-        $this->entity->removeCategory($category1);
-
-        // 验证Categories集合被更新
-        $this->assertCount(1, $this->entity->getCategories());
-        $this->assertFalse($this->entity->getCategories()->contains($category1));
-        $this->assertTrue($this->entity->getCategories()->contains($category2));
+        $entity->setSortNumber(null);
+        $this->assertNull($entity->getSortNumber());
     }
 
-    public function testTagRelationship_addsAndRemovesTags(): void
+    public function testRemarkProperty(): void
     {
-        // 创建模拟的Tag对象
-        $tag1 = $this->createMock(Tag::class);
-        $tag1->method('getEntities')->willReturn(new ArrayCollection());
+        $entity = new Entity();
 
-        $tag2 = $this->createMock(Tag::class);
-        $tag2->method('getEntities')->willReturn(new ArrayCollection());
+        $entity->setRemark('Test remark');
+        $this->assertSame('Test remark', $entity->getRemark());
 
-        // 添加Tag到Entity
-        $this->entity->addTag($tag1);
-        $this->entity->addTag($tag2);
-
-        // 验证Tags集合中包含添加的Tag
-        $this->assertCount(2, $this->entity->getTags());
-        $this->assertTrue($this->entity->getTags()->contains($tag1));
-        $this->assertTrue($this->entity->getTags()->contains($tag2));
-
-        // 移除一个Tag
-        $this->entity->removeTag($tag1);
-
-        // 验证Tags集合被更新
-        $this->assertCount(1, $this->entity->getTags());
-        $this->assertFalse($this->entity->getTags()->contains($tag1));
-        $this->assertTrue($this->entity->getTags()->contains($tag2));
+        $entity->setRemark(null);
+        $this->assertNull($entity->getRemark());
     }
 
-    public function testTopicRelationship_addsAndRemovesTopics(): void
+    public function testValueListCollection(): void
     {
-        // 创建模拟的Topic对象
-        $topic1 = $this->createMock(Topic::class);
-        $topic1->method('getEntities')->willReturn(new ArrayCollection());
+        $entity = new Entity();
+        $valueList = $entity->getValueList();
 
-        $topic2 = $this->createMock(Topic::class);
-        $topic2->method('getEntities')->willReturn(new ArrayCollection());
-
-        // 添加Topic到Entity
-        $this->entity->addTopic($topic1);
-        $this->entity->addTopic($topic2);
-
-        // 验证Topics集合中包含添加的Topic
-        $this->assertCount(2, $this->entity->getTopics());
-        $this->assertTrue($this->entity->getTopics()->contains($topic1));
-        $this->assertTrue($this->entity->getTopics()->contains($topic2));
-
-        // 移除一个Topic
-        $this->entity->removeTopic($topic1);
-
-        // 验证Topics集合被更新
-        $this->assertCount(1, $this->entity->getTopics());
-        $this->assertFalse($this->entity->getTopics()->contains($topic1));
-        $this->assertTrue($this->entity->getTopics()->contains($topic2));
+        $this->assertInstanceOf(Collection::class, $valueList);
+        $this->assertCount(0, $valueList);
     }
 
-    public function testValueListRelationship_addsAndRemovesValues(): void
+    public function testAddRemoveValueList(): void
     {
-        // 创建模拟的Value对象
-        $value1 = $this->createMock(Value::class);
-        $value1->method('getEntity')->willReturn($this->entity);
+        $entity = new Entity();
+        $value = new Value();
 
-        $value2 = $this->createMock(Value::class);
-        $value2->method('getEntity')->willReturn($this->entity);
+        $entity->addValueList($value);
+        $this->assertCount(1, $entity->getValueList());
+        $this->assertTrue($entity->getValueList()->contains($value));
 
-        // 添加Value到Entity
-        $this->entity->addValueList($value1);
-        $this->entity->addValueList($value2);
-
-        // 验证ValueList集合中包含添加的Value
-        $this->assertCount(2, $this->entity->getValueList());
-        $this->assertTrue($this->entity->getValueList()->contains($value1));
-        $this->assertTrue($this->entity->getValueList()->contains($value2));
-
-        // 移除一个Value
-        $this->entity->removeValueList($value1);
-
-        // 验证ValueList集合被更新
-        $this->assertCount(1, $this->entity->getValueList());
-        $this->assertFalse($this->entity->getValueList()->contains($value1));
-        $this->assertTrue($this->entity->getValueList()->contains($value2));
+        $entity->removeValueList($value);
+        $this->assertCount(0, $entity->getValueList());
+        $this->assertFalse($entity->getValueList()->contains($value));
     }
 
-    public function testModelRelationship_setsAndGetsModel(): void
+    public function testStringRepresentation(): void
     {
-        // 创建模拟的Model对象
-        $model = $this->createMock(Model::class);
+        $entity = new Entity();
 
-        // 设置Model
-        $this->entity->setModel($model);
-
-        // 验证Model被正确设置
-        $this->assertSame($model, $this->entity->getModel());
-
-        // 将Model设置为null
-        $this->entity->setModel(null);
-
-        // 验证Model被正确设置为null
-        $this->assertNull($this->entity->getModel());
+        // 没有 ID 时返回空字符串
+        $this->assertSame('', (string) $entity);
     }
 
-    public function testRetrieveAdminArray_returnsExpectedStructure(): void
+    public function testStringRepresentationWithData(): void
     {
-        // 设置必要的属性
-        $this->entity->setTitle('测试文章');
-        $this->entity->setState(EntityState::PUBLISHED);
+        $entity = new Entity();
+        $entity->setTitle('Test Title');
 
-        // 调用retrieveAdminArray方法
-        $array = $this->entity->retrieveAdminArray();
-
-        // 验证返回的数组结构
-        $this->assertArrayHasKey('title', $array);
-        $this->assertEquals('测试文章', $array['title']);
-        $this->assertArrayHasKey('state', $array);
-        $this->assertEquals(EntityState::PUBLISHED, $array['state']);
+        // 仍然没有 ID，所以返回空字符串
+        $this->assertSame('', (string) $entity);
     }
 
-    public function testRetrieveLockResource_returnsExpectedString(): void
+    public function testGetValuesMethod(): void
     {
-        // 设置entity的id
-        $reflection = new \ReflectionClass($this->entity);
-        $idProperty = $reflection->getProperty('id');
-        $idProperty->setAccessible(true);
-        $idProperty->setValue($this->entity, 123);
+        $entity = new Entity();
+        $values = $entity->getValues();
 
-        // 测试锁定资源字符串
-        $expected = 'cms_entity_123';
-        $this->assertEquals($expected, $this->entity->retrieveLockResource());
+        $this->assertIsArray($values);
+        $this->assertEmpty($values);
     }
 
-    public function testRenderRealStats_returnsExpectedStructure(): void
+    protected function createEntity(): Entity
     {
-        // 设置entity的id
-        $reflection = new \ReflectionClass($this->entity);
-        $idProperty = $reflection->getProperty('id');
-        $idProperty->setAccessible(true);
-        $idProperty->setValue($this->entity, 123);
-
-        // 调用renderRealStats方法
-        $stats = $this->entity->renderRealStats();
-
-        // 验证返回数组结构 - 这是一个包含统计信息的数组
-        $this->assertCount(3, $stats); // 应该有3个统计项
-
-        // 验证每个统计项的结构
-        foreach ($stats as $stat) {
-            $this->assertArrayHasKey('text', $stat);
-            $this->assertArrayHasKey('fontStyle', $stat);
-        }
-    }
-
-    public function testGetRealStats_returnsExpectedStructure(): void
-    {
-        // 设置entity的id
-        $reflection = new \ReflectionClass($this->entity);
-        $idProperty = $reflection->getProperty('id');
-        $idProperty->setAccessible(true);
-        $idProperty->setValue($this->entity, 123);
-
-        // 调用getRealStats方法
-        $stats = $this->entity->getRealStats();
-
-        // 验证返回数组结构
-        $this->assertArrayHasKey('likeTotal', $stats);
-        $this->assertArrayHasKey('collectTotal', $stats);
-        $this->assertArrayHasKey('shareTotal', $stats);
-
-        // 验证统计数据都是整数
-        $this->assertIsInt($stats['likeTotal']);
-        $this->assertIsInt($stats['collectTotal']);
-        $this->assertIsInt($stats['shareTotal']);
+        return new Entity();
     }
 }

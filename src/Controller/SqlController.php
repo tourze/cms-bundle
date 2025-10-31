@@ -1,23 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Controller;
 
-use CmsBundle\Repository\ModelRepository;
+use CmsBundle\Service\ModelService;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
-class SqlController extends AbstractController
+final class SqlController extends AbstractController
 {
     #[Route(path: '/cms-model-sql/{code}', name: 'cms-model-sql')]
-    public function __invoke(string $code, ModelRepository $modelRepository, Connection $connection): Response
+    public function __invoke(string $code, ModelService $modelService, Connection $connection): Response
     {
-        $model = $modelRepository->findOneBy([
-            'code' => $code,
-        ]);
-        if ($model === null) {
+        $model = $modelService->findValidModelByCode($code);
+        if (null === $model) {
             throw new NotFoundHttpException('找不到模型数据');
         }
 
@@ -32,10 +32,10 @@ class SqlController extends AbstractController
         foreach ($model->getSortedAttributes() as $attribute) {
             $alias = "v{$attribute->getId()}";
             $attributeName = $attribute->getName();
-            if ($attributeName === null) {
+            if (null === $attributeName) {
                 continue;
             }
-            $name = $connection->getDatabasePlatform()->quoteIdentifier($attributeName);
+            $name = $connection->getDatabasePlatform()->quoteSingleIdentifier($attributeName);
             $sqlLines[] = "LEFT JOIN cms_value AS {$alias} ON (ce.id = {$alias}.entity_id AND {$alias}.attribute_id = '{$attribute->getId()}')";
             $selectParts[] = "{$alias}.data AS {$name}";
         }

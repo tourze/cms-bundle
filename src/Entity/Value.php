@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Entity;
 
 use CmsBundle\Enum\FieldType;
@@ -8,11 +10,12 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
-use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
+use Symfony\Component\Validator\Constraints as Assert;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
+use Tourze\DoctrineUserBundle\Traits\CreateUserAware;
 use Yiisoft\Arrays\ArrayHelper;
 
 #[ORM\Entity(repositoryClass: ValueRepository::class)]
@@ -20,74 +23,41 @@ use Yiisoft\Arrays\ArrayHelper;
 #[ORM\UniqueConstraint(name: 'cms_value_idx_uniq', columns: ['model_id', 'attribute_id', 'entity_id'])]
 class Value implements \Stringable
 {
-    use TimestampableAware;
-    use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
+    use BlameableAware;
+    use CreateUserAware;
+    use IpTraceableAware;
     use SnowflakeKeyAware;
+    use TimestampableAware;
 
     #[ORM\ManyToOne(targetEntity: Model::class)]
-    #[ORM\JoinColumn(onDelete: 'SET NULL')]
+    #[ORM\JoinColumn(name: 'model_id', onDelete: 'SET NULL')]
     private ?Model $model = null;
 
     #[Groups(groups: ['restful_read'])]
     #[ORM\ManyToOne(targetEntity: Attribute::class)]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(name: 'attribute_id', onDelete: 'CASCADE')]
     private ?Attribute $attribute = null;
 
     #[Ignore]
-    #[ORM\ManyToOne(targetEntity: Entity::class, inversedBy: 'valueList', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: Entity::class, cascade: ['persist', 'remove'], inversedBy: 'valueList')]
+    #[ORM\JoinColumn(name: 'entity_id', onDelete: 'CASCADE')]
     private ?Entity $entity = null;
 
     /**
      * @var array<string, mixed>
      */
     #[ORM\Column(type: Types::JSON, options: ['comment' => '原始数据'])]
+    #[Assert\Type(type: 'array')]
     private array $rawData = [];
 
     #[Groups(groups: ['restful_read'])]
     #[ORM\Column(type: Types::TEXT, nullable: true, options: ['comment' => '数据内容'])]
+    #[Assert\Length(max: 65535)]
     private ?string $data = null;
-
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __toString(): string
     {
-        if ($this->getId() === null) {
-            return '';
-        }
-
-        return (string) $this->getId();
-    }
-
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
+        return $this->getData() ?? '';
     }
 
     public function getModel(): ?Model
@@ -95,11 +65,9 @@ class Value implements \Stringable
         return $this->model;
     }
 
-    public function setModel(?Model $model): self
+    public function setModel(?Model $model): void
     {
         $this->model = $model;
-
-        return $this;
     }
 
     public function getAttribute(): ?Attribute
@@ -107,11 +75,9 @@ class Value implements \Stringable
         return $this->attribute;
     }
 
-    public function setAttribute(?Attribute $attribute): self
+    public function setAttribute(?Attribute $attribute): void
     {
         $this->attribute = $attribute;
-
-        return $this;
     }
 
     /**
@@ -125,11 +91,9 @@ class Value implements \Stringable
     /**
      * @param array<string, mixed> $rawData
      */
-    public function setRawData(array $rawData): self
+    public function setRawData(array $rawData): void
     {
         $this->rawData = $rawData;
-
-        return $this;
     }
 
     public function getEntity(): ?Entity
@@ -137,11 +101,9 @@ class Value implements \Stringable
         return $this->entity;
     }
 
-    public function setEntity(?Entity $entity): self
+    public function setEntity(?Entity $entity): void
     {
         $this->entity = $entity;
-
-        return $this;
     }
 
     public function getData(): ?string
@@ -149,57 +111,78 @@ class Value implements \Stringable
         return $this->data;
     }
 
-    public function setData(?string $data): self
+    public function setData(?string $data): void
     {
         $this->data = $data;
-
-        return $this;
     }
 
     public function getCastData(): mixed
     {
         $attribute = $this->getAttribute();
-        if ($attribute === null) {
+        if (null === $attribute) {
             return $this->getData();
         }
 
-        if (FieldType::INTEGER === $attribute->getType()) {
-            return intval($this->getData());
+        return match ($attribute->getType()) {
+            FieldType::INTEGER => $this->castToInteger(),
+            FieldType::SINGLE_IMAGE => $this->castToSingleImage(),
+            FieldType::MULTIPLE_IMAGE => $this->castToMultipleImages(),
+            default => $this->getData(),
+        };
+    }
+
+    private function castToInteger(): int
+    {
+        return (int) $this->getData();
+    }
+
+    private function castToSingleImage(): ?string
+    {
+        $data = $this->getData();
+        if (null === $data) {
+            return null;
         }
 
-        if (FieldType::SINGLE_IMAGE === $attribute->getType()) {
-            $data = $this->getData();
-            if ($data === null) {
-                return null;
-            }
-            $decoded = json_decode($data, true);
-            if (!is_array($decoded)) {
-                return null;
-            }
-
-            return isset($decoded[0]['url']) ? $decoded[0]['url'] : null;
+        $decoded = json_decode($data, true);
+        if (!\is_array($decoded)) {
+            return null;
         }
 
-        if (FieldType::MULTIPLE_IMAGE === $attribute->getType()) {
-            $data = $this->getData();
-            if ($data === null || $data === '') {
-                return [];
-            }
+        $firstItem = $decoded[0] ?? null;
+        if (!\is_array($firstItem)) {
+            return null;
+        }
 
-            $decoded = json_decode($data, true);
-            $res = [];
-            if (!is_array($decoded)) {
-                return $res;
-            }
+        $url = $firstItem['url'] ?? null;
 
-            foreach ($decoded as $datum) {
-                if (is_array($datum)) {
-                    $res[] = ArrayHelper::getValue($datum, 'url');
+        return \is_string($url) ? $url : null;
+    }
+
+    /**
+     * @return array<string>
+     */
+    private function castToMultipleImages(): array
+    {
+        $data = $this->getData();
+        if (null === $data || '' === $data) {
+            return [];
+        }
+
+        $decoded = json_decode($data, true);
+        if (!\is_array($decoded)) {
+            return [];
+        }
+
+        $urls = [];
+        foreach ($decoded as $datum) {
+            if (\is_array($datum)) {
+                $url = ArrayHelper::getValue($datum, 'url');
+                if (\is_string($url)) {
+                    $urls[] = $url;
                 }
             }
-
-            return $res;
         }
 
-        return $this->getData();
-    }}
+        return $urls;
+    }
+}

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Service;
 
 use CmsBundle\Controller\SqlController;
@@ -34,6 +36,7 @@ class AttributeControllerLoader extends Loader implements RoutingAutoLoaderInter
     {
         $collection = new RouteCollection();
         $collection->addCollection($this->controllerLoader->load(SqlController::class));
+
         return $collection;
     }
 }

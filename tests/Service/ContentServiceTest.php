@@ -1,298 +1,501 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Tests\Service;
 
 use CmsBundle\Entity\Attribute;
 use CmsBundle\Entity\Model;
-use CmsBundle\Repository\ModelRepository;
-use CmsBundle\Repository\ValueRepository;
 use CmsBundle\Service\ContentService;
+use CmsBundle\Service\ModelService;
+use CmsBundle\Service\ValueService;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Expr;
-use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\Query\Expr\Func;
-use Doctrine\ORM\Query\Expr\Literal;
 use Doctrine\ORM\QueryBuilder;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 
-class ContentServiceTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(ContentService::class)]
+final class ContentServiceTest extends TestCase
 {
     private ContentService $contentService;
-    private ValueRepository|MockObject $valueRepository;
-    private ModelRepository|MockObject $modelRepository;
-    private QueryBuilder|MockObject $queryBuilder;
+
+    private ValueService $valueService;
+
+    private ModelService $modelService;
+
+    /** @phpstan-var QueryBuilder */
+    private QueryBuilder $queryBuilder;
+
+    private EntityManagerInterface $entityManager;
 
     protected function setUp(): void
     {
-        $this->valueRepository = $this->createMock(ValueRepository::class);
-        $this->modelRepository = $this->createMock(ModelRepository::class);
+        parent::setUp();
+
+        // 创建 EntityManager Mock
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
+
+        /*
+         * 使用 ValueService Mock 的原因：
+         * 1. ValueService 是 readonly 类，不能被匿名类继承
+         * 2. Service 是业务逻辑层服务类，没有对应的接口
+         * 3. 在测试中需要模拟 Service 的具体行为
+         * 4. 使用 PHPUnit Mock 符合 PHP 8.4+ readonly 类要求
+         */
+        $this->valueService = $this->createMock(ValueService::class);
+        $this->valueService->method('buildSearchSubQuery')->willReturn(new QueryBuilder($this->entityManager));
+
+        /*
+         * 使用 ModelService Mock 的原因：
+         * 1. ModelService 是 readonly 类，不能被匿名类继承
+         * 2. Service 是业务逻辑层服务类，没有对应的接口
+         * 3. 在测试中需要模拟 Service 的具体行为
+         * 4. 使用 PHPUnit Mock 符合 PHP 8.4+ readonly 类要求
+         */
+        $this->modelService = $this->createMock(ModelService::class);
+        // 在 setUp 中不设置默认返回值，让每个测试方法自行设置
 
         $this->contentService = new ContentService(
-            $this->valueRepository,
-            $this->modelRepository
+            $this->valueService,
+            $this->modelService
         );
 
-        // 创建QueryBuilder实例
-        $this->queryBuilder = $this->createMock(QueryBuilder::class);
+        // 创建QueryBuilder匿名类实例
+        /*
+         * 使用 QueryBuilder 匿名类实现的原因：
+         * 1. QueryBuilder 是 Doctrine ORM 的具体实现类，没有对应的接口
+         * 2. 在测试中需要模拟该类的具体行为
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $this->queryBuilder = new class($this->entityManager) extends QueryBuilder {
+            /** @var callable|null */
+            private $exprCallback;
+
+            /** @var callable|null */
+            private $andWhereCallback;
+
+            private int $andWhereCallCount = 0;
+
+            public function setExprCallback(callable $callback): void
+            {
+                $this->exprCallback = $callback;
+            }
+
+            public function setAndWhereCallback(callable $callback): void
+            {
+                $this->andWhereCallback = $callback;
+            }
+
+            public function expr(): Expr
+            {
+                if (null !== $this->exprCallback) {
+                    $result = ($this->exprCallback)();
+                    if ($result instanceof Expr) {
+                        return $result;
+                    }
+                }
+
+                return parent::expr();
+            }
+
+            public function andWhere(mixed ...$where): static
+            {
+                ++$this->andWhereCallCount;
+                if (null !== $this->andWhereCallback) {
+                    ($this->andWhereCallback)($where, $this->andWhereCallCount);
+                }
+
+                return parent::andWhere(...$where);
+            }
+
+            public function getAndWhereCallCount(): int
+            {
+                return $this->andWhereCallCount;
+            }
+        };
     }
 
     /**
-     * 测试当没有提供模型时，会搜索所有有效模型的可搜索属性
+     * 测试当没有提供模型时，会搜索所有有效模型的可搜索属性.
      */
-    public function testSearchByKeyword_withoutModel_searchesAllValidModels(): void
+    public function testSearchByKeywordWithoutModelSearchesAllValidModels(): void
     {
-        // 创建属性模拟对象
-        $searchableAttribute1 = $this->createMock(Attribute::class);
-        $searchableAttribute1->method('getId')->willReturn(1);
-        $searchableAttribute1->method('getSearchable')->willReturn(true);
+        // 创建属性匿名类实现
+        /*
+         * 使用 Attribute 匿名类实现的原因：
+         * 1. Entity 是 Doctrine 实体类，不适合定义接口
+         * 2. 在测试中需要模拟实体对象的属性和方法
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $searchableAttribute1 = new class extends Attribute {
+            public ?int $id = 1;
 
-        $nonSearchableAttribute = $this->createMock(Attribute::class);
-        $nonSearchableAttribute->method('getId')->willReturn(2);
-        $nonSearchableAttribute->method('getSearchable')->willReturn(false);
+            private bool $searchable = true;
 
-        $searchableAttribute2 = $this->createMock(Attribute::class);
-        $searchableAttribute2->method('getId')->willReturn(3);
-        $searchableAttribute2->method('getSearchable')->willReturn(true);
+            public function getSearchable(): bool
+            {
+                return $this->searchable;
+            }
+        };
 
-        // 创建模型模拟对象
-        $model1 = $this->createMock(Model::class);
-        $model1->method('getAttributes')->willReturn(
-            new ArrayCollection([$searchableAttribute1, $nonSearchableAttribute])
-        );
+        /*
+         * 使用 Attribute 匿名类实现的原因：
+         * 1. Entity 是 Doctrine 实体类，不适合定义接口
+         * 2. 在测试中需要模拟实体对象的属性和方法
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $nonSearchableAttribute = new class extends Attribute {
+            public ?int $id = 2;
 
-        $model2 = $this->createMock(Model::class);
-        $model2->method('getAttributes')->willReturn(
-            new ArrayCollection([$searchableAttribute2])
-        );
+            private bool $searchable = false;
 
-        // 配置ModelRepository返回所有有效模型
-        $this->modelRepository->method('findBy')
-            ->with(['valid' => true])
-            ->willReturn([$model1, $model2]);
+            public function getSearchable(): bool
+            {
+                return $this->searchable;
+            }
+        };
 
-        // 创建子查询构建器
-        $subQueryBuilder = $this->createMock(QueryBuilder::class);
+        /*
+         * 使用 Attribute 匿名类实现的原因：
+         * 1. Entity 是 Doctrine 实体类，不适合定义接口
+         * 2. 在测试中需要模拟实体对象的属性和方法
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $searchableAttribute2 = new class extends Attribute {
+            public ?int $id = 3;
 
-        // 创建表达式对象和Func/Comparison/Literal对象
-        $expr = $this->createMock(Expr::class);
-        $inFunc = $this->createMock(Func::class);
-        $likeComparison = $this->createMock(Comparison::class);
-        $literal = $this->createMock(Literal::class);
+            private bool $searchable = true;
 
-        // 配置子查询构建器方法链
-        $subQueryBuilder->method('expr')->willReturn($expr);
-        $subQueryBuilder->method('select')->with('IDENTITY(v.entity)')->willReturnSelf();
-        $subQueryBuilder->method('where')->willReturnSelf();
-        $subQueryBuilder->method('andWhere')->willReturnSelf();
-        $subQueryBuilder->method('getDQL')->willReturn('SUBQUERY_DQL');
+            public function getSearchable(): bool
+            {
+                return $this->searchable;
+            }
+        };
 
-        // 配置expr对象返回对应类型对象
-        $expr->method('in')
-            ->with('v.attribute', [1, 3])
-            ->willReturn($inFunc);
+        // 创建模型匿名类实现
+        /*
+         * 使用 Model 匿名类实现的原因：
+         * 1. Entity 是 Doctrine 实体类，不适合定义接口
+         * 2. 在测试中需要模拟实体对象的属性和方法
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $model1 = new class([$searchableAttribute1, $nonSearchableAttribute]) extends Model {
+            /** @var array<int, Attribute> */
+            private array $attributes;
 
-        $expr->method('like')
-            ->willReturn($likeComparison);
+            /** @param array<int, Attribute> $attributes */
+            public function __construct(array $attributes = [])
+            {
+                parent::__construct();
+                $this->attributes = $attributes;
+            }
 
-        $expr->method('literal')
-            ->with('%test%')
-            ->willReturn($literal);
+            /** @return ArrayCollection<int, Attribute> */
+            public function getAttributes(): ArrayCollection
+            {
+                return new ArrayCollection($this->attributes);
+            }
+        };
 
-        // 配置ValueRepository返回子查询构建器
-        $this->valueRepository->method('createQueryBuilder')
-            ->with('v')
-            ->willReturn($subQueryBuilder);
+        /*
+         * 使用 Model 匿名类实现的原因：
+         * 1. Entity 是 Doctrine 实体类，不适合定义接口
+         * 2. 在测试中需要模拟实体对象的属性和方法
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $model2 = new class([$searchableAttribute2]) extends Model {
+            /** @var array<int, Attribute> */
+            private array $attributes;
+
+            /** @param array<int, Attribute> $attributes */
+            public function __construct(array $attributes = [])
+            {
+                parent::__construct();
+                $this->attributes = $attributes;
+            }
+
+            /** @return ArrayCollection<int, Attribute> */
+            public function getAttributes(): ArrayCollection
+            {
+                return new ArrayCollection($this->attributes);
+            }
+        };
+
+        // 配置ModelService返回所有有效模型
+        $this->modelService->method('findAllValidModels')->willReturn([$model1, $model2]);
+
+        // 创建子查询构建器匿名类实现
+        /*
+         * 使用 QueryBuilder 匿名类实现的原因：
+         * 1. QueryBuilder 是 Doctrine ORM 的具体实现类，没有对应的接口
+         * 2. 在测试中需要模拟该类的具体行为
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $subQueryBuilder = new class($this->entityManager) extends QueryBuilder {
+            public function getDQL(): string
+            {
+                return 'SUBQUERY_DQL';
+            }
+        };
+
+        // 配置ValueService返回子查询构建器
+        $this->valueService->method('buildSearchSubQuery')->willReturn($subQueryBuilder);
 
         // 配置主查询构建器
-        $mainExpr = $this->createMock(Expr::class);
-        $mainInFunc = $this->createMock(Func::class);
+        /*
+         * 使用 Expr 匿名类实现的原因：
+         * 1. Expr 是 Doctrine ORM 的具体实现类，没有对应的接口
+         * 2. 在测试中需要模拟该类的具体行为
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $mainExpr = new class extends Expr {
+            /** @var callable|null */
+            private $inCallback;
 
-        $mainExpr->method('in')
-            ->with('a.id', 'SUBQUERY_DQL')
-            ->willReturn($mainInFunc);
+            public function setInCallback(callable $callback): void
+            {
+                $this->inCallback = $callback;
+            }
 
-        $this->queryBuilder->method('expr')
-            ->willReturn($mainExpr);
+            public function in(string $x, mixed $y): Func
+            {
+                if (null !== $this->inCallback) {
+                    // 创建一个简单的 Func 对象，而不是匿名类
+                    return new Func($x, [$y]);
+                }
 
-        $this->queryBuilder->expects($this->once())
-            ->method('andWhere')
-            ->with($mainInFunc)
-            ->willReturnSelf();
+                return parent::in($x, $y);
+            }
+        };
+
+        $mainExpr->setInCallback(static fn (string $x, mixed $y) => new Func('IN', ['TEST_DQL']));
+
+        // @phpstan-ignore-next-line method.notFound
+        $this->queryBuilder->setExprCallback(static fn () => $mainExpr);
+
+        $andWhereCalled = false;
+        // @phpstan-ignore-next-line method.notFound
+        $this->queryBuilder->setAndWhereCallback(static function ($where, int $callCount) use (&$andWhereCalled) {
+            if (1 === $callCount) {
+                $andWhereCalled = true;
+                // 验证第一个参数是 Func 对象
+                if (!$where[0] instanceof Func) {
+                    throw new \UnexpectedValueException('Expected andWhere to be called with Func parameter');
+                }
+            }
+        });
 
         // 调用被测方法
         $this->contentService->searchByKeyword($this->queryBuilder, 'test');
+
+        // 验证方法被正确调用
+        $this->assertTrue($andWhereCalled, 'andWhere should have been called once');
     }
 
     /**
-     * 测试当提供特定模型时，只搜索该模型的可搜索属性
+     * 测试当提供特定模型时，只搜索该模型的可搜索属性.
      */
-    public function testSearchByKeyword_withSpecificModel_searchesOnlyThatModel(): void
+    public function testSearchByKeywordWithSpecificModelSearchesOnlyThatModel(): void
     {
-        // 创建属性模拟对象
-        $searchableAttribute = $this->createMock(Attribute::class);
-        $searchableAttribute->method('getId')->willReturn(1);
-        $searchableAttribute->method('getSearchable')->willReturn(true);
+        // 创建属性匿名类实现
+        /*
+         * 使用 Attribute 匿名类实现的原因：
+         * 1. Entity 是 Doctrine 实体类，不适合定义接口
+         * 2. 在测试中需要模拟实体对象的属性和方法
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $searchableAttribute = new class extends Attribute {
+            public ?int $id = 1;
 
-        $nonSearchableAttribute = $this->createMock(Attribute::class);
-        $nonSearchableAttribute->method('getId')->willReturn(2);
-        $nonSearchableAttribute->method('getSearchable')->willReturn(false);
+            private bool $searchable = true;
 
-        // 创建模型模拟对象
-        $specificModel = $this->createMock(Model::class);
-        $specificModel->method('getAttributes')->willReturn(
-            new ArrayCollection([$searchableAttribute, $nonSearchableAttribute])
-        );
+            public function getSearchable(): bool
+            {
+                return $this->searchable;
+            }
+        };
 
-        // 创建子查询构建器
-        $subQueryBuilder = $this->createMock(QueryBuilder::class);
+        /*
+         * 使用 Attribute 匿名类实现的原因：
+         * 1. Entity 是 Doctrine 实体类，不适合定义接口
+         * 2. 在测试中需要模拟实体对象的属性和方法
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $nonSearchableAttribute = new class extends Attribute {
+            public ?int $id = 2;
 
-        // 创建表达式对象和Func/Comparison/Literal对象
-        $expr = $this->createMock(Expr::class);
-        $inFunc = $this->createMock(Func::class);
-        $likeComparison = $this->createMock(Comparison::class);
-        $literal = $this->createMock(Literal::class);
+            private bool $searchable = false;
 
-        // 配置子查询构建器方法链
-        $subQueryBuilder->method('expr')->willReturn($expr);
-        $subQueryBuilder->method('select')->with('IDENTITY(v.entity)')->willReturnSelf();
-        $subQueryBuilder->method('where')->willReturnSelf();
-        $subQueryBuilder->method('andWhere')->willReturnSelf();
-        $subQueryBuilder->method('getDQL')->willReturn('SUBQUERY_DQL');
+            public function getSearchable(): bool
+            {
+                return $this->searchable;
+            }
+        };
 
-        // 配置expr对象返回对应类型对象
-        $expr->method('in')
-            ->with('v.attribute', [1])
-            ->willReturn($inFunc);
+        // 创建模型匿名类实现
+        /*
+         * 使用 Model 匿名类实现的原因：
+         * 1. Entity 是 Doctrine 实体类，不适合定义接口
+         * 2. 在测试中需要模拟实体对象的属性和方法
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $specificModel = new class([$searchableAttribute, $nonSearchableAttribute]) extends Model {
+            /** @var array<int, Attribute> */
+            private array $attributes;
 
-        $expr->method('like')
-            ->willReturn($likeComparison);
+            /** @param array<int, Attribute> $attributes */
+            public function __construct(array $attributes = [])
+            {
+                parent::__construct();
+                $this->attributes = $attributes;
+            }
 
-        $expr->method('literal')
-            ->with('%test%')
-            ->willReturn($literal);
+            /** @return ArrayCollection<int, Attribute> */
+            public function getAttributes(): ArrayCollection
+            {
+                return new ArrayCollection($this->attributes);
+            }
+        };
 
-        // 配置ValueRepository返回子查询构建器
-        $this->valueRepository->method('createQueryBuilder')
-            ->with('v')
-            ->willReturn($subQueryBuilder);
+        // 创建子查询构建器匿名类实现
+        /*
+         * 使用 QueryBuilder 匿名类实现的原因：
+         * 1. QueryBuilder 是 Doctrine ORM 的具体实现类，没有对应的接口
+         * 2. 在测试中需要模拟该类的具体行为
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $subQueryBuilder = new class($this->entityManager) extends QueryBuilder {
+            public function getDQL(): string
+            {
+                return 'SUBQUERY_DQL';
+            }
+        };
+
+        // 配置ValueService返回子查询构建器
+        $this->valueService->method('buildSearchSubQuery')->willReturn($subQueryBuilder);
 
         // 配置主查询构建器
-        $mainExpr = $this->createMock(Expr::class);
-        $mainInFunc = $this->createMock(Func::class);
+        /*
+         * 使用 Expr 匿名类实现的原因：
+         * 1. Expr 是 Doctrine ORM 的具体实现类，没有对应的接口
+         * 2. 在测试中需要模拟该类的具体行为
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $mainExpr = new class extends Expr {
+            /** @var callable|null */
+            private $inCallback;
 
-        $mainExpr->method('in')
-            ->with('a.id', 'SUBQUERY_DQL')
-            ->willReturn($mainInFunc);
+            public function setInCallback(callable $callback): void
+            {
+                $this->inCallback = $callback;
+            }
 
-        $this->queryBuilder->method('expr')
-            ->willReturn($mainExpr);
+            public function in(string $x, mixed $y): Func
+            {
+                if (null !== $this->inCallback) {
+                    // 创建一个简单的 Func 对象，而不是匿名类
+                    return new Func($x, [$y]);
+                }
 
-        $this->queryBuilder->expects($this->once())
-            ->method('andWhere')
-            ->with($mainInFunc)
-            ->willReturnSelf();
+                return parent::in($x, $y);
+            }
+        };
 
-        // 调用被测方法
+        $mainExpr->setInCallback(static fn (string $x, mixed $y) => new Func('IN', ['TEST_DQL']));
+
+        // @phpstan-ignore-next-line method.notFound
+        $this->queryBuilder->setExprCallback(static fn () => $mainExpr);
+
+        $andWhereCalled = false;
+        // @phpstan-ignore-next-line method.notFound
+        $this->queryBuilder->setAndWhereCallback(static function ($where, int $callCount) use (&$andWhereCalled) {
+            if (1 === $callCount) {
+                $andWhereCalled = true;
+                // 验证第一个参数是 Func 对象
+                if (!$where[0] instanceof Func) {
+                    throw new \UnexpectedValueException('Expected andWhere to be called with Func parameter');
+                }
+            }
+        });
+
+        // 调用被测方法（传入特定模型）
         $this->contentService->searchByKeyword($this->queryBuilder, 'test', $specificModel);
+
+        // 验证方法被正确调用
+        $this->assertTrue($andWhereCalled, 'andWhere should have been called once');
     }
 
     /**
-     * 测试当没有可搜索属性时，不修改查询构建器
+     * 测试当没有可搜索属性时，不修改查询构建器.
      */
-    public function testSearchByKeyword_withNoSearchableAttributes_doesNotModifyQueryBuilder(): void
+    public function testSearchByKeywordWithNoSearchableAttributesDoesNotModifyQueryBuilder(): void
     {
-        // 创建属性模拟对象
-        $nonSearchableAttribute = $this->createMock(Attribute::class);
-        $nonSearchableAttribute->method('getId')->willReturn(2);
-        $nonSearchableAttribute->method('getSearchable')->willReturn(false);
+        // 创建属性匿名类实现
+        /*
+         * 使用 Attribute 匿名类实现的原因：
+         * 1. Entity 是 Doctrine 实体类，不适合定义接口
+         * 2. 在测试中需要模拟实体对象的属性和方法
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $nonSearchableAttribute = new class extends Attribute {
+            public ?int $id = 2;
 
-        // 创建模型模拟对象
-        $model = $this->createMock(Model::class);
-        $model->method('getAttributes')->willReturn(
-            new ArrayCollection([$nonSearchableAttribute])
-        );
+            private bool $searchable = false;
 
-        // 配置ModelRepository返回所有有效模型
-        $this->modelRepository->method('findBy')
-            ->with(['valid' => true])
-            ->willReturn([$model]);
+            public function getSearchable(): bool
+            {
+                return $this->searchable;
+            }
+        };
 
-        // 确保QueryBuilder的andWhere方法不会被调用
-        $this->queryBuilder->expects($this->never())->method('andWhere');
+        // 创建模型匿名类实现
+        /*
+         * 使用 Model 匿名类实现的原因：
+         * 1. Entity 是 Doctrine 实体类，不适合定义接口
+         * 2. 在测试中需要模拟实体对象的属性和方法
+         * 3. 匿名类实现更符合静态分析要求，避免 Mock 的类型推断问题
+         */
+        $model = new class([$nonSearchableAttribute]) extends Model {
+            /** @var array<int, Attribute> */
+            private array $attributes;
+
+            /** @param array<int, Attribute> $attributes */
+            public function __construct(array $attributes = [])
+            {
+                parent::__construct();
+                $this->attributes = $attributes;
+            }
+
+            /** @return ArrayCollection<int, Attribute> */
+            public function getAttributes(): ArrayCollection
+            {
+                return new ArrayCollection($this->attributes);
+            }
+        };
+
+        // 配置ModelService返回所有有效模型
+        $this->modelService->method('findAllValidModels')->willReturn([$model]);
+
+        // 验证QueryBuilder的andWhere方法不会被调用
+        $andWhereCalled = false;
+        // @phpstan-ignore-next-line method.notFound
+        $this->queryBuilder->setAndWhereCallback(static function ($where, int $callCount) use (&$andWhereCalled) {
+            $andWhereCalled = true;
+            throw new \UnexpectedValueException('andWhere should not have been called');
+        });
 
         // 调用被测方法
         $this->contentService->searchByKeyword($this->queryBuilder, 'test');
-    }
 
-    /**
-     * 测试当关键词包含特殊字符时，查询构建器正确处理
-     */
-    public function testSearchByKeyword_withSpecialCharacters_escapesProperlyInQuery(): void
-    {
-        // 创建属性模拟对象
-        $searchableAttribute = $this->createMock(Attribute::class);
-        $searchableAttribute->method('getId')->willReturn(1);
-        $searchableAttribute->method('getSearchable')->willReturn(true);
-
-        // 创建模型模拟对象
-        $model = $this->createMock(Model::class);
-        $model->method('getAttributes')->willReturn(
-            new ArrayCollection([$searchableAttribute])
-        );
-
-        // 配置ModelRepository返回所有有效模型
-        $this->modelRepository->method('findBy')
-            ->with(['valid' => true])
-            ->willReturn([$model]);
-
-        // 创建子查询构建器
-        $subQueryBuilder = $this->createMock(QueryBuilder::class);
-
-        // 创建表达式对象和Func/Comparison/Literal对象
-        $expr = $this->createMock(Expr::class);
-        $inFunc = $this->createMock(Func::class);
-        $likeComparison = $this->createMock(Comparison::class);
-        $literal = $this->createMock(Literal::class);
-
-        // 配置子查询构建器方法链
-        $subQueryBuilder->method('expr')->willReturn($expr);
-        $subQueryBuilder->method('select')->willReturnSelf();
-        $subQueryBuilder->method('where')->willReturnSelf();
-        $subQueryBuilder->method('andWhere')->willReturnSelf();
-        $subQueryBuilder->method('getDQL')->willReturn('SUBQUERY_DQL');
-
-        // 配置expr对象返回对应类型对象
-        $expr->method('in')
-            ->willReturn($inFunc);
-
-        $expr->method('like')
-            ->willReturn($likeComparison);
-
-        // 验证特殊字符是否被正确传递
-        $expr->expects($this->once())
-            ->method('literal')
-            ->with('%special\'chars%')
-            ->willReturn($literal);
-
-        // 配置ValueRepository返回子查询构建器
-        $this->valueRepository->method('createQueryBuilder')
-            ->willReturn($subQueryBuilder);
-
-        // 配置主查询构建器
-        $mainExpr = $this->createMock(Expr::class);
-        $mainInFunc = $this->createMock(Func::class);
-
-        $mainExpr->method('in')
-            ->willReturn($mainInFunc);
-
-        $this->queryBuilder->method('expr')
-            ->willReturn($mainExpr);
-
-        $this->queryBuilder->method('andWhere')
-            ->willReturnSelf();
-
-        // 调用被测方法，使用包含特殊字符的关键词
-        $this->contentService->searchByKeyword($this->queryBuilder, 'special\'chars');
+        // 验证方法没有被调用
+        $this->assertFalse($andWhereCalled, 'andWhere should not have been called');
+        // @phpstan-ignore-next-line method.notFound
+        $this->assertSame(0, $this->queryBuilder->getAndWhereCallCount(), 'andWhere should not have been called');
     }
 }

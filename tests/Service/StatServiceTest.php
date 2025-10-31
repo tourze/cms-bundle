@@ -1,185 +1,149 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Tests\Service;
 
-use Carbon\CarbonImmutable;
 use CmsBundle\Entity\Entity;
 use CmsBundle\Entity\VisitStat;
+use CmsBundle\Enum\EntityState;
 use CmsBundle\Repository\VisitStatRepository;
 use CmsBundle\Service\StatService;
-use Doctrine\ORM\EntityManagerInterface;
-use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
-use Tourze\DoctrineEntityLockBundle\Service\EntityLockService;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
-class StatServiceTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(StatService::class)]
+#[RunTestsInSeparateProcesses]
+final class StatServiceTest extends AbstractIntegrationTestCase
 {
     private StatService $statService;
-    private VisitStatRepository|MockObject $visitStatRepository;
-    private LoggerInterface|MockObject $logger;
-    private EntityLockService|MockObject $entityLockService;
-    private EntityManagerInterface|MockObject $entityManager;
-
-    protected function setUp(): void
-    {
-        $this->visitStatRepository = $this->createMock(VisitStatRepository::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
-        $this->entityLockService = $this->createMock(EntityLockService::class);
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
-
-        $this->statService = new StatService(
-            $this->visitStatRepository,
-            $this->logger,
-            $this->entityLockService,
-            $this->entityManager
-        );
-    }
+    private VisitStatRepository $visitStatRepository;
 
     /**
-     * 测试更新已有统计记录
+     * 测试更新已有统计记录.
      */
-    public function testUpdateStat_withExistingStat_incrementsValue(): void
+    public function testUpdateStatWithExistingStatIncrementsValue(): void
     {
-        // 创建模拟Entity对象
-        $entity = $this->createMock(Entity::class);
-        $entity->method('getId')->willReturn(123);
+        $this->setUpMocks();
+
+        // 创建真实的Entity对象
+        $entity = new Entity();
+        $entity->setTitle('Test Entity '.uniqid());
+        $entity->setState(EntityState::PUBLISHED);
+
+        /** @var \Doctrine\ORM\EntityManagerInterface $entityManager */
+        $entityManager = self::getEntityManager();
+        $entityManager->persist($entity);
+        $entityManager->flush();
 
         // 获取当前日期的开始时间
-        $today = CarbonImmutable::now()->startOfDay();
+        $today = new \DateTimeImmutable();
+        $today = $today->setTime(0, 0, 0, 0);
 
-        // 创建模拟的现有统计对象
-        $existingStat = $this->createMock(VisitStat::class);
-        $existingStat->expects($this->once())
-            ->method('getValue')
-            ->willReturn(10);
-        $existingStat->expects($this->once())
-            ->method('setValue')
-            ->with(11);
+        // 创建已有的统计记录
+        $existingStat = new VisitStat();
+        $existingStat->setEntityId((string) $entity->getId());
+        $existingStat->setDate($today);
+        $existingStat->setValue(10);
 
-        // 配置visitStatRepository返回现有统计
-        $this->visitStatRepository->expects($this->once())
-            ->method('findOneBy')
-            ->with([
-                'entityId' => 123,
-                'date' => $today,
-            ])
-            ->willReturn($existingStat);
-
-        // 配置entityManager
-        $this->entityManager->expects($this->once())
-            ->method('persist')
-            ->with($existingStat);
-        $this->entityManager->expects($this->once())
-            ->method('flush');
-
-        // 配置entityLockService执行锁定回调函数
-        $this->entityLockService->expects($this->once())
-            ->method('lockEntity')
-            ->with($entity)
-            ->willReturnCallback(function ($entity, $callback) {
-                $callback();
-            });
+        $entityManager->persist($existingStat);
+        $entityManager->flush();
 
         // 调用被测方法
         $this->statService->updateStat($entity);
+
+        // 刷新实体以获取更新后的值
+        $entityManager->refresh($existingStat);
+
+        // 验证统计值被正确增加
+        $this->assertSame(11, $existingStat->getValue());
     }
 
     /**
-     * 测试创建新统计记录
+     * 测试创建新统计记录.
      */
-    public function testUpdateStat_withNoExistingStat_createsNewStat(): void
+    public function testUpdateStatWithNoExistingStatCreatesNewStat(): void
     {
-        // 创建模拟Entity对象
-        $entity = $this->createMock(Entity::class);
-        $entity->method('getId')->willReturn(123);
+        $this->setUpMocks();
+
+        // 创建真实的Entity对象
+        $entity = new Entity();
+        $entity->setTitle('Test Entity '.uniqid());
+        $entity->setState(EntityState::PUBLISHED);
+
+        /** @var \Doctrine\ORM\EntityManagerInterface $entityManager */
+        $entityManager = self::getEntityManager();
+        $entityManager->persist($entity);
+        $entityManager->flush();
 
         // 获取当前日期的开始时间
-        $today = CarbonImmutable::now()->startOfDay();
-
-        // 配置visitStatRepository返回null（无现有统计）
-        $this->visitStatRepository->expects($this->once())
-            ->method('findOneBy')
-            ->with([
-                'entityId' => 123,
-                'date' => $today,
-            ])
-            ->willReturn(null);
-
-        // 配置entityManager，检查是否存储了新的VisitStat对象
-        $this->entityManager->expects($this->once())
-            ->method('persist')
-            ->with($this->callback(function ($stat) use ($entity) {
-                $this->assertInstanceOf(VisitStat::class, $stat);
-                $this->assertEquals($entity->getId(), $stat->getEntityId());
-                $this->assertEquals(1, $stat->getValue());
-                return true;
-            }));
-        $this->entityManager->expects($this->once())
-            ->method('flush');
-
-        // 配置entityLockService执行锁定回调函数
-        $this->entityLockService->expects($this->once())
-            ->method('lockEntity')
-            ->with($entity)
-            ->willReturnCallback(function ($entity, $callback) {
-                $callback();
-            });
+        $today = new \DateTimeImmutable();
+        $today = $today->setTime(0, 0, 0, 0);
 
         // 调用被测方法
         $this->statService->updateStat($entity);
+
+        // 验证新的统计记录被创建
+        $stat = $this->visitStatRepository->findOneBy([
+            'entityId' => (string) $entity->getId(),
+            'date' => $today,
+        ]);
+
+        $this->assertNotNull($stat, '应该创建新的统计记录');
+        $this->assertSame(1, $stat->getValue(), '新统计记录的值应该是1');
+        $this->assertSame($today->format('Y-m-d'), $stat->getDate()?->format('Y-m-d'), '统计记录的日期应该正确');
     }
 
     /**
-     * 测试异常处理
+     * 测试服务基本功能正常运行.
      */
-    public function testUpdateStat_whenExceptionOccurs_logsError(): void
+    public function testUpdateStatBasicFunctionality(): void
     {
-        // 创建模拟Entity对象
-        $entity = $this->createMock(Entity::class);
-        $entity->method('getId')->willReturn(123);
+        $this->setUpMocks();
 
-        // 获取当前日期的开始时间
-        $today = CarbonImmutable::now()->startOfDay();
+        // 创建真实的Entity对象
+        $entity = new Entity();
+        $entity->setTitle('Test Entity '.uniqid());
+        $entity->setState(EntityState::PUBLISHED);
 
-        // 创建模拟的现有统计对象
-        $existingStat = $this->createMock(VisitStat::class);
-        $existingStat->method('getValue')->willReturn(10);
-        $existingStat->method('setValue')->with(11);
+        /** @var \Doctrine\ORM\EntityManagerInterface $entityManager */
+        $entityManager = self::getEntityManager();
+        $entityManager->persist($entity);
+        $entityManager->flush();
 
-        // 配置visitStatRepository返回现有统计
-        $this->visitStatRepository->expects($this->once())
-            ->method('findOneBy')
-            ->willReturn($existingStat);
-
-        // 配置entityManager抛出异常
-        $exception = new \Exception('测试异常');
-        $this->entityManager->expects($this->once())
-            ->method('persist')
-            ->with($existingStat);
-        $this->entityManager->expects($this->once())
-            ->method('flush')
-            ->willThrowException($exception);
-
-        // 预期logger记录错误
-        $this->logger->expects($this->once())
-            ->method('error')
-            ->with(
-                '更新CMS内容统计发生异常',
-                $this->callback(function ($context) use ($exception) {
-                    return isset($context['exception']) && $context['exception'] === $exception;
-                })
-            );
-
-        // 配置entityLockService执行锁定回调函数
-        $this->entityLockService->expects($this->once())
-            ->method('lockEntity')
-            ->with($entity)
-            ->willReturnCallback(function ($entity, $callback) {
-                $callback();
-            });
-
-        // 调用被测方法
+        // 第一次调用应该创建新记录
         $this->statService->updateStat($entity);
+
+        $today = new \DateTimeImmutable();
+        $today = $today->setTime(0, 0, 0, 0);
+        $stat = $this->visitStatRepository->findOneBy([
+            'entityId' => (string) $entity->getId(),
+            'date' => $today,
+        ]);
+
+        $this->assertNotNull($stat, '第一次调用应该创建新的统计记录');
+        $this->assertSame(1, $stat->getValue(), '第一次统计值应该是1');
+
+        // 第二次调用应该增加现有记录
+        $this->statService->updateStat($entity);
+
+        $entityManager->refresh($stat);
+        $this->assertSame(2, $stat->getValue(), '第二次调用应该将统计值增加到2');
+    }
+
+    protected function onSetUp(): void
+    {
+        // 空实现，保持兼容性
+    }
+
+    private function setUpMocks(): void
+    {
+        // 从容器获取服务实例，符合集成测试的要求
+        $this->statService = self::getService(StatService::class);
+        $this->visitStatRepository = self::getService(VisitStatRepository::class);
     }
 }

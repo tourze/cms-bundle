@@ -1,39 +1,54 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Entity;
 
+// use CmsBundle\Entity\Category;
 use CmsBundle\Repository\ModelRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineTrackBundle\Attribute\TrackColumn;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\EnumExtra\Itemable;
 use Yiisoft\Arrays\ArraySorter;
 
+/**
+ * @implements AdminArrayInterface<string, mixed>
+ */
 #[ORM\Table(name: 'cms_model', options: ['comment' => '模型管理'])]
 #[ORM\Entity(repositoryClass: ModelRepository::class)]
+#[UniqueEntity(fields: ['code'], message: '模型代码已存在')]
 class Model implements \Stringable, Itemable, AdminArrayInterface
 {
+    use BlameableAware;
+    use IpTraceableAware;
     use TimestampableAware;
-    use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => 'ID'])]
-    private ?int $id = 0;
+    public ?int $id = null;
 
     #[Groups(groups: ['restful_read'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 64)]
     #[ORM\Column(type: Types::STRING, length: 64, unique: true, options: ['comment' => '代号'])]
     private string $code;
 
     #[Groups(groups: ['restful_read'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 64)]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '模型名'])]
     private string $title = '';
 
@@ -42,7 +57,7 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
      *
      * @var Collection<int, Attribute>
      */
-    #[ORM\OneToMany(mappedBy: 'model', targetEntity: Attribute::class, indexBy: 'name')]
+    #[ORM\OneToMany(targetEntity: Attribute::class, mappedBy: 'model', indexBy: 'name')]
     private Collection $attributes;
 
     /**
@@ -51,71 +66,66 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
      * @var Collection<int, Entity>
      */
     #[Ignore]
-    #[ORM\OneToMany(mappedBy: 'model', targetEntity: Entity::class, orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: Entity::class, mappedBy: 'model', orphanRemoval: true)]
     private Collection $entities;
 
-    /**
-     * @var Collection<int, Category>
-     */
-    #[Ignore]
-    #[ORM\OneToMany(mappedBy: 'model', targetEntity: Category::class, fetch: 'EXTRA_LAZY')]
-    private Collection $categories;
+    // /**
+    //  * @var Collection<int, Category>
+    //  */
+    // #[Ignore]
+    // #[ORM\OneToMany(targetEntity: Category::class, mappedBy: 'model', fetch: 'EXTRA_LAZY')]
+    // private Collection $categories;
 
     #[Groups(groups: ['restful_read'])]
+    #[Assert\NotNull]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否开放点赞功能'])]
     private bool $allowLike = false;
 
     #[Groups(groups: ['restful_read'])]
+    #[Assert\NotNull]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否开放收藏功能'])]
     private bool $allowCollect = false;
 
     #[Groups(groups: ['restful_read'])]
+    #[Assert\NotNull]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '是否开放分享功能'])]
     private bool $allowShare = false;
 
     #[Groups(groups: ['restful_read'])]
+    #[Assert\PositiveOrZero]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '排序'])]
     private ?int $sortNumber = null;
 
     /**
      * @var array<string, mixed>|null
      */
+    #[Assert\Type(type: 'array')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '内容列表排序'])]
     private ?array $contentSorts = [];
 
     /**
      * @var array<string, mixed>|null
      */
+    #[Assert\Type(type: 'array')]
     #[ORM\Column(type: Types::JSON, nullable: true, options: ['comment' => '专题列表排序'])]
     private ?array $topicSorts = [];
 
-    #[IndexColumn]
     #[TrackColumn]
+    #[IndexColumn]
+    #[Assert\NotNull]
     #[ORM\Column(type: Types::BOOLEAN, nullable: true, options: ['comment' => '有效', 'default' => 0])]
     private ?bool $valid = false;
-
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
 
     public function __construct()
     {
         $this->entities = new ArrayCollection();
         $this->attributes = new ArrayCollection();
-        $this->categories = new ArrayCollection();
+        // $this->categories = new ArrayCollection();
     }
 
     public function __toString(): string
     {
-        if ($this->getId() === null || $this->getId() === 0) {
-            return '';
-        }
-
-        return "{$this->getTitle()}({$this->getCode()})";
+        return $this->getTitle();
     }
 
     public function getId(): ?int
@@ -123,40 +133,14 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this->id;
     }
 
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
-    }
-
     public function isValid(): ?bool
     {
         return $this->valid;
     }
 
-    public function setValid(?bool $valid): self
+    public function setValid(?bool $valid): void
     {
         $this->valid = $valid;
-
-        return $this;
     }
 
     public function getCode(): string
@@ -164,11 +148,9 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this->code;
     }
 
-    public function setCode(string $code): self
+    public function setCode(string $code): void
     {
         $this->code = $code;
-
-        return $this;
     }
 
     public function getTitle(): string
@@ -176,11 +158,9 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this->title;
     }
 
-    public function setTitle(string $title): self
+    public function setTitle(string $title): void
     {
         $this->title = $title;
-
-        return $this;
     }
 
     /**
@@ -191,17 +171,15 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this->entities;
     }
 
-    public function addEntity(Entity $entity): self
+    public function addEntity(Entity $entity): void
     {
         if (!$this->entities->contains($entity)) {
-            $this->entities[] = $entity;
+            $this->entities->add($entity);
             $entity->setModel($this);
         }
-
-        return $this;
     }
 
-    public function removeEntity(Entity $entity): self
+    public function removeEntity(Entity $entity): void
     {
         if ($this->entities->removeElement($entity)) {
             // set the owning side to null (unless already changed)
@@ -209,8 +187,6 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
                 $entity->setModel(null);
             }
         }
-
-        return $this;
     }
 
     /**
@@ -227,12 +203,12 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
             fn (Attribute $attribute) => $attribute->getDisplayOrder(),
             fn (Attribute $attribute) => $attribute->getId(),
         ], [
-            SORT_DESC,
-            SORT_ASC,
+            \SORT_DESC,
+            \SORT_ASC,
         ]);
 
-        /** @phpstan-ignore-next-line */
-        return $attributes;
+        // 确保返回连续索引数组，且元素类型正确
+        return array_values(array_filter($attributes, fn ($item): bool => $item instanceof Attribute));
     }
 
     /**
@@ -243,17 +219,15 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this->attributes;
     }
 
-    public function addAttribute(Attribute $attribute): self
+    public function addAttribute(Attribute $attribute): void
     {
         if (!$this->attributes->contains($attribute)) {
-            $this->attributes[] = $attribute;
+            $this->attributes->add($attribute);
             $attribute->setModel($this);
         }
-
-        return $this;
     }
 
-    public function removeAttribute(Attribute $attribute): self
+    public function removeAttribute(Attribute $attribute): void
     {
         if ($this->attributes->removeElement($attribute)) {
             // set the owning side to null (unless already changed)
@@ -261,8 +235,6 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
                 $attribute->setModel(null);
             }
         }
-
-        return $this;
     }
 
     public function getAllowLike(): ?bool
@@ -270,11 +242,9 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this->allowLike;
     }
 
-    public function setAllowLike(bool $allowLike): self
+    public function setAllowLike(bool $allowLike): void
     {
         $this->allowLike = $allowLike;
-
-        return $this;
     }
 
     public function getAllowCollect(): ?bool
@@ -282,11 +252,9 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this->allowCollect;
     }
 
-    public function setAllowCollect(bool $allowCollect): self
+    public function setAllowCollect(bool $allowCollect): void
     {
         $this->allowCollect = $allowCollect;
-
-        return $this;
     }
 
     public function getAllowShare(): ?bool
@@ -294,53 +262,49 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
         return $this->allowShare;
     }
 
-    public function setAllowShare(bool $allowShare): self
+    public function setAllowShare(bool $allowShare): void
     {
         $this->allowShare = $allowShare;
-
-        return $this;
     }
 
-    /**
-     * @return Collection<int, Category>
-     */
-    public function getCategories(): Collection
-    {
-        return $this->categories;
-    }
+    // /**
+    //  * @return Collection<int, Category>
+    //  */
+    // public function getCategories(): Collection
+    // {
+    //     return $this->categories;
+    // }
 
-    public function addCategory(Category $category): self
-    {
-        if (!$this->categories->contains($category)) {
-            $this->categories[] = $category;
-            $category->setModel($this);
-        }
+    // public function addCategory(Category $category): self
+    // {
+    //     if (!$this->categories->contains($category)) {
+    //         $this->categories[] = $category;
+    //         $category->setModel($this);
+    //     }
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
-    public function removeCategory(Category $category): self
-    {
-        if ($this->categories->removeElement($category)) {
-            // set the owning side to null (unless already changed)
-            if ($category->getModel() === $this) {
-                $category->setModel(null);
-            }
-        }
+    // public function removeCategory(Category $category): self
+    // {
+    //     if ($this->categories->removeElement($category)) {
+    //         // set the owning side to null (unless already changed)
+    //         if ($category->getModel() === $this) {
+    //             $category->setModel(null);
+    //         }
+    //     }
 
-        return $this;
-    }
+    //     return $this;
+    // }
 
     public function getSortNumber(): ?int
     {
         return $this->sortNumber;
     }
 
-    public function setSortNumber(?int $sortNumber): self
+    public function setSortNumber(?int $sortNumber): void
     {
         $this->sortNumber = $sortNumber;
-
-        return $this;
     }
 
     /**
@@ -354,11 +318,9 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
     /**
      * @param array<string, mixed>|null $contentSorts
      */
-    public function setContentSorts(?array $contentSorts): self
+    public function setContentSorts(?array $contentSorts): void
     {
         $this->contentSorts = $contentSorts;
-
-        return $this;
     }
 
     /**
@@ -372,11 +334,9 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
     /**
      * @param array<string, mixed>|null $topicSorts
      */
-    public function setTopicSorts(?array $topicSorts): self
+    public function setTopicSorts(?array $topicSorts): void
     {
         $this->topicSorts = $topicSorts;
-
-        return $this;
     }
 
     public function renderEntityCount(): int
@@ -393,6 +353,7 @@ class Model implements \Stringable, Itemable, AdminArrayInterface
             'label' => $this->getTitle(),
             'text' => $this->getTitle(),
             'value' => $this->getId(),
+            'name' => $this->getTitle(),
         ];
     }
 

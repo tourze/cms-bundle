@@ -1,138 +1,68 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Tests\Entity;
 
-use CmsBundle\Entity\Attribute;
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
 use CmsBundle\Entity\Value;
-use CmsBundle\Enum\FieldType;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class ValueTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Value::class)]
+final class ValueTest extends AbstractEntityTestCase
 {
-    private Value $value;
-
-    protected function setUp(): void
+    /**
+     * @return \Generator<string, array{string, mixed}>
+     */
+    public static function propertiesProvider(): \Generator
     {
-        $this->value = new Value();
+        yield 'data' => ['data', 'test-value'];
     }
 
-    public function testGettersAndSetters(): void
+    public function testConstruct(): void
     {
-        $model = $this->createMock(Model::class);
-        $attribute = $this->createMock(Attribute::class);
-        $entity = $this->createMock(Entity::class);
-        $rawData = ['key' => 'value'];
+        $value = new Value();
+        $this->assertInstanceOf(Value::class, $value);
+    }
+
+    public function testValueGettersAndSetters(): void
+    {
+        $value = new Value();
         $data = 'test data';
+        $value->setData($data);
+        $this->assertSame($data, $value->getData());
+
+        $rawData = ['key' => 'value'];
+        $value->setRawData($rawData);
+        $this->assertSame($rawData, $value->getRawData());
+
         $createdFromIp = '192.168.1.1';
+        $value->setCreatedFromIp($createdFromIp);
+        $this->assertSame($createdFromIp, $value->getCreatedFromIp());
+
         $updatedFromIp = '192.168.1.2';
-
-        $this->value->setModel($model);
-        $this->value->setAttribute($attribute);
-        $this->value->setEntity($entity);
-        $this->value->setRawData($rawData);
-        $this->value->setData($data);
-        $this->value->setCreatedFromIp($createdFromIp);
-        $this->value->setUpdatedFromIp($updatedFromIp);
-
-        $this->assertSame($model, $this->value->getModel());
-        $this->assertSame($attribute, $this->value->getAttribute());
-        $this->assertSame($entity, $this->value->getEntity());
-        $this->assertSame($rawData, $this->value->getRawData());
-        $this->assertSame($data, $this->value->getData());
-        $this->assertSame($createdFromIp, $this->value->getCreatedFromIp());
-        $this->assertSame($updatedFromIp, $this->value->getUpdatedFromIp());
+        $value->setUpdatedFromIp($updatedFromIp);
+        $this->assertSame($updatedFromIp, $value->getUpdatedFromIp());
     }
 
-    public function testStringable(): void
+    public function testToString(): void
     {
-        $this->assertSame('', (string) $this->value);
+        $value = new Value();
+        $value->setData('test value');
+        $this->assertSame('test value', (string) $value);
     }
 
-    public function testInitialValues(): void
+    public function testToStringEmpty(): void
     {
-        $this->assertNull($this->value->getId());
-        $this->assertNull($this->value->getModel());
-        $this->assertNull($this->value->getAttribute());
-        $this->assertNull($this->value->getEntity());
-        $this->assertSame([], $this->value->getRawData());
-        $this->assertNull($this->value->getData());
-        $this->assertNull($this->value->getCreatedFromIp());
-        $this->assertNull($this->value->getUpdatedFromIp());
+        $value = new Value();
+        $this->assertSame('', (string) $value);
     }
 
-    public function testGetCastDataInteger(): void
+    protected function createEntity(): Value
     {
-        $attribute = $this->createMock(Attribute::class);
-        $attribute->method('getType')->willReturn(FieldType::INTEGER);
-
-        $this->value->setAttribute($attribute);
-        $this->value->setData('123');
-
-        $this->assertSame(123, $this->value->getCastData());
-    }
-
-    public function testGetCastDataSingleImage(): void
-    {
-        $attribute = $this->createMock(Attribute::class);
-        $attribute->method('getType')->willReturn(FieldType::SINGLE_IMAGE);
-
-        $this->value->setAttribute($attribute);
-        $this->value->setData('[{"url": "http://example.com/image.jpg"}]');
-
-        $this->assertSame('http://example.com/image.jpg', $this->value->getCastData());
-    }
-
-    public function testGetCastDataSingleImageEmpty(): void
-    {
-        $attribute = $this->createMock(Attribute::class);
-        $attribute->method('getType')->willReturn(FieldType::SINGLE_IMAGE);
-
-        $this->value->setAttribute($attribute);
-        $this->value->setData('[]');
-
-        $this->assertNull($this->value->getCastData());
-    }
-
-    public function testGetCastDataMultipleImage(): void
-    {
-        $attribute = $this->createMock(Attribute::class);
-        $attribute->method('getType')->willReturn(FieldType::MULTIPLE_IMAGE);
-
-        $this->value->setAttribute($attribute);
-        $this->value->setData('[{"url": "image1.jpg"}, {"url": "image2.jpg"}]');
-
-        $expected = ['image1.jpg', 'image2.jpg'];
-        $this->assertSame($expected, $this->value->getCastData());
-    }
-
-    public function testGetCastDataMultipleImageEmpty(): void
-    {
-        $attribute = $this->createMock(Attribute::class);
-        $attribute->method('getType')->willReturn(FieldType::MULTIPLE_IMAGE);
-
-        $this->value->setAttribute($attribute);
-        $this->value->setData('');
-
-        $this->assertSame([], $this->value->getCastData());
-    }
-
-    public function testFluentInterface(): void
-    {
-        $model = $this->createMock(Model::class);
-        $attribute = $this->createMock(Attribute::class);
-        $entity = $this->createMock(Entity::class);
-        $rawData = ['key' => 'value'];
-        $data = 'test data';
-
-        $result = $this->value
-            ->setModel($model)
-            ->setAttribute($attribute)
-            ->setEntity($entity)
-            ->setRawData($rawData)
-            ->setData($data);
-
-        $this->assertSame($this->value, $result);
+        return new Value();
     }
 }

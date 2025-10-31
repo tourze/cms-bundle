@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Procedure;
 
 use CmsBundle\Enum\EntityState;
 use CmsBundle\Event\VisitEntityEvent;
-use CmsBundle\Repository\EntityRepository;
-use CmsBundle\Repository\LikeLogRepository;
 use CmsBundle\Repository\VisitStatRepository;
+use CmsBundle\Service\EntityService;
 use CmsBundle\Service\StatService;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use Tourze\CmsLikeBundle\Service\LikeService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
 use Tourze\JsonRPC\Core\Attribute\MethodParam;
@@ -28,12 +30,12 @@ class GetCmsEntityDetail extends BaseProcedure
     public int $entityId;
 
     public function __construct(
-        private readonly EntityRepository $entityRepository,
+        private readonly EntityService $entityService,
         private readonly NormalizerInterface $normalizer,
         private readonly StatService $statService,
         private readonly Security $security,
         private readonly VisitStatRepository $visitStatRepository,
-        private readonly LikeLogRepository $likeLogRepository,
+        private readonly LikeService $likeService,
         private readonly EventDispatcherInterface $eventDispatcher,
     ) {
     }
@@ -43,18 +45,19 @@ class GetCmsEntityDetail extends BaseProcedure
      */
     public function execute(): array
     {
-        $entity = $this->entityRepository->findOneBy([
+        $entity = $this->entityService->findEntityBy([
             'id' => $this->entityId,
             'state' => EntityState::PUBLISHED,
         ]);
-        if ($entity === null) {
-            throw new ApiException('找不到文章');
+        if (null === $entity) {
+            throw new ApiException('记录不存在');
         }
 
         $normalized = $this->normalizer->normalize($entity, 'array', ['groups' => 'restful_read']);
-        if (!is_array($normalized)) {
+        if (!\is_array($normalized)) {
             throw new ApiException('序列化失败');
         }
+        /** @var array<string, mixed> $result */
         $result = $normalized;
 
         $visitTotal = $this->visitStatRepository->createQueryBuilder('v')
@@ -62,13 +65,14 @@ class GetCmsEntityDetail extends BaseProcedure
             ->where('v.entityId = :entityId')
             ->setParameter('entityId', $entity->getId())
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getSingleScalarResult()
+        ;
 
-        $result['visitTotal'] = intval($visitTotal ?? 0);
+        $result['visitTotal'] = (int) ($visitTotal ?? 0);
         $result['isLike'] = false;
         $user = $this->security->getUser();
-        if ($user !== null) {
-            $log = $this->likeLogRepository->findOneBy([
+        if (null !== $user) {
+            $log = $this->likeService->findLikeLogBy([
                 'entity' => $entity,
                 'valid' => true,
                 'user' => $this->security->getUser(),
@@ -79,7 +83,7 @@ class GetCmsEntityDetail extends BaseProcedure
         $this->statService->updateStat($entity);
 
         // 分发事件处理
-        if ($this->security->getUser() !== null) {
+        if (null !== $this->security->getUser()) {
             $event = new VisitEntityEvent();
             $event->setSender($this->security->getUser());
             $event->setReceiver(SystemUser::instance());

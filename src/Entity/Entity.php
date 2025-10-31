@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CmsBundle\Entity;
 
 use CmsBundle\Enum\EntityState;
@@ -10,26 +12,38 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
-use Tourze\DoctrineIpBundle\Attribute\CreateIpColumn;
-use Tourze\DoctrineIpBundle\Attribute\UpdateIpColumn;
+use Tourze\CatalogBundle\Entity\Catalog;
+use Tourze\CmsCollectBundle\Entity\CollectLog;
+use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
+use Tourze\DoctrineUserBundle\Traits\CreateUserAware;
 use Tourze\LockServiceBundle\Model\LockEntity;
+use Tourze\TagManageBundle\Entity\Tag;
 
+/**
+ * @implements AdminArrayInterface<string, mixed>
+ */
 #[ORM\Table(name: 'cms_entity', options: ['comment' => '文章管理表'])]
 #[ORM\Entity(repositoryClass: EntityRepository::class)]
 class Entity implements \Stringable, AdminArrayInterface, LockEntity
 {
+    use BlameableAware;
+    use CreateUserAware;
+    use IpTraceableAware;
     use TimestampableAware;
-    use \Tourze\DoctrineUserBundle\Traits\BlameableAware;
-    
+
     #[Groups(groups: ['restful_read', 'admin_curd'])]
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::INTEGER, options: ['comment' => '文章ID'])]
-    private ?int $id = 0;
+    public ?int $id = null;
 
     #[Groups(groups: ['restful_read', 'admin_curd'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 64)]
     #[ORM\Column(type: Types::STRING, length: 64, options: ['comment' => '标题'])]
     private string $title;
 
@@ -39,46 +53,46 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     private ?Model $model = null;
 
     /**
-     * @var Collection<int, Category>
+     * @var Collection<int, Catalog>
      */
     #[Groups(groups: ['restful_read', 'admin_curd'])]
-    #[ORM\ManyToMany(targetEntity: Category::class, inversedBy: 'entities', fetch: 'EXTRA_LAZY')]
-    private Collection $categories;
+    #[ORM\ManyToMany(targetEntity: Catalog::class, fetch: 'EXTRA_LAZY')]
+    #[ORM\JoinTable(name: 'cms_entity_catalog')]
+    private Collection $catalogs;
 
     /**
      * @var Collection<int, Tag>
      */
     #[Groups(groups: ['restful_read', 'admin_curd'])]
-    #[ORM\ManyToMany(targetEntity: Tag::class, mappedBy: 'entities', fetch: 'EXTRA_LAZY')]
+    #[ORM\ManyToMany(targetEntity: Tag::class, inversedBy: 'entities', fetch: 'EXTRA_LAZY')]
+    #[ORM\JoinTable(name: 'cms_entity_tag')]
     private Collection $tags;
-
-    /**
-     * @var Collection<int, Topic>
-     */
-    #[Groups(groups: ['admin_curd'])]
-    #[ORM\ManyToMany(targetEntity: Topic::class, mappedBy: 'entities', fetch: 'EXTRA_LAZY')]
-    private Collection $topics;
 
     /**
      * @var Collection<int, Value>
      */
     #[Groups(groups: ['restful_read', 'admin_curd'])]
-    #[ORM\OneToMany(targetEntity: Value::class, mappedBy: 'entity', cascade: ['persist'], fetch: 'EXTRA_LAZY', orphanRemoval: true, indexBy: 'attribute_id')]
+    #[ORM\OneToMany(targetEntity: Value::class, mappedBy: 'entity', fetch: 'EXTRA_LAZY', orphanRemoval: true, indexBy: 'attribute_id')]
     private Collection $valueList;
 
     #[Groups(groups: ['restful_read', 'admin_curd'])]
+    #[Assert\Type(type: \DateTimeImmutable::class)]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '发布时间'])]
     private ?\DateTimeImmutable $publishTime = null;
 
     #[Groups(groups: ['restful_read', 'admin_curd'])]
+    #[Assert\Type(type: \DateTimeImmutable::class)]
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '结束时间'])]
     private ?\DateTimeImmutable $endTime = null;
 
     #[Groups(groups: ['restful_read', 'admin_curd'])]
+    #[Assert\NotNull]
+    #[Assert\Choice(callback: [EntityState::class, 'cases'])]
     #[ORM\Column(type: Types::STRING, length: 32, enumType: EntityState::class, options: ['comment' => '状态'])]
     private EntityState $state;
 
     #[Groups(groups: ['admin_curd'])]
+    #[Assert\PositiveOrZero]
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '排序'])]
     private ?int $sortNumber = null;
 
@@ -89,84 +103,26 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     #[ORM\OneToMany(mappedBy: 'entity', targetEntity: CollectLog::class, fetch: 'EXTRA_LAZY', orphanRemoval: true)]
     private Collection $collectLogs;
 
-    /**
-     * @var Collection<int, LikeLog>
-     */
-    #[Ignore]
-    #[ORM\OneToMany(mappedBy: 'entity', targetEntity: LikeLog::class, fetch: 'EXTRA_LAZY', orphanRemoval: true)]
-    private Collection $likeLogs;
-
-    /**
-     * @var Collection<int, ShareLog>
-     */
-    #[Ignore]
-    #[ORM\OneToMany(mappedBy: 'entity', targetEntity: ShareLog::class, fetch: 'EXTRA_LAZY', orphanRemoval: true)]
-    private Collection $shareLogs;
-
     #[Groups(groups: ['admin_curd'])]
+    #[Assert\Length(max: 100)]
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '备注'])]
     private ?string $remark = null;
 
-    /**
-     * @var Collection<int, Comment>
-     */
-    #[Ignore]
-    #[ORM\OneToMany(mappedBy: 'entity', targetEntity: Comment::class)]
-    private Collection $comments;
-
-
-    #[CreateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '创建时IP'])]
-    private ?string $createdFromIp = null;
-
-    #[UpdateIpColumn]
-    #[ORM\Column(length: 128, nullable: true, options: ['comment' => '更新时IP'])]
-    private ?string $updatedFromIp = null;
-
     public function __construct()
     {
-        $this->categories = new ArrayCollection();
+        $this->catalogs = new ArrayCollection();
         $this->tags = new ArrayCollection();
-        $this->topics = new ArrayCollection();
         $this->valueList = new ArrayCollection();
         $this->collectLogs = new ArrayCollection();
-        $this->likeLogs = new ArrayCollection();
-        $this->shareLogs = new ArrayCollection();
-        $this->comments = new ArrayCollection();
     }
 
     public function __toString(): string
     {
-        if ($this->getId() === null || $this->getId() === 0) {
+        if (null === $this->getId() || 0 === $this->getId()) {
             return '';
         }
 
         return "{$this->getId()}:{$this->getTitle()}";
-    }
-
-
-    public function setCreatedFromIp(?string $createdFromIp): self
-    {
-        $this->createdFromIp = $createdFromIp;
-
-        return $this;
-    }
-
-    public function getCreatedFromIp(): ?string
-    {
-        return $this->createdFromIp;
-    }
-
-    public function setUpdatedFromIp(?string $updatedFromIp): self
-    {
-        $this->updatedFromIp = $updatedFromIp;
-
-        return $this;
-    }
-
-    public function getUpdatedFromIp(): ?string
-    {
-        return $this->updatedFromIp;
     }
 
     public function getId(): ?int
@@ -174,16 +130,14 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $this->id;
     }
 
-    public function getTitle(): ?string
+    public function getTitle(): string
     {
         return $this->title;
     }
 
-    public function setTitle(string $title): self
+    public function setTitle(string $title): void
     {
         $this->title = $title;
-
-        return $this;
     }
 
     public function getModel(): ?Model
@@ -191,11 +145,9 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $this->model;
     }
 
-    public function setModel(?Model $model): self
+    public function setModel(?Model $model): void
     {
         $this->model = $model;
-
-        return $this;
     }
 
     public function getState(): EntityState
@@ -203,35 +155,29 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $this->state;
     }
 
-    public function setState(EntityState $state): self
+    public function setState(EntityState $state): void
     {
         $this->state = $state;
-
-        return $this;
     }
 
     /**
-     * @return Collection<int, Category>
+     * @return Collection<int, Catalog>
      */
-    public function getCategories(): Collection
+    public function getCatalogs(): Collection
     {
-        return $this->categories;
+        return $this->catalogs;
     }
 
-    public function addCategory(Category $category): self
+    public function addCatalog(Catalog $catalog): void
     {
-        if (!$this->categories->contains($category)) {
-            $this->categories[] = $category;
+        if (!$this->catalogs->contains($catalog)) {
+            $this->catalogs->add($catalog);
         }
-
-        return $this;
     }
 
-    public function removeCategory(Category $category): self
+    public function removeCatalog(Catalog $catalog): void
     {
-        $this->categories->removeElement($category);
-
-        return $this;
+        $this->catalogs->removeElement($catalog);
     }
 
     /**
@@ -242,50 +188,16 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $this->tags;
     }
 
-    public function addTag(Tag $tag): self
+    public function addTag(Tag $tag): void
     {
         if (!$this->tags->contains($tag)) {
-            $this->tags[] = $tag;
-            $tag->addEntity($this);
+            $this->tags->add($tag);
         }
-
-        return $this;
     }
 
-    public function removeTag(Tag $tag): self
+    public function removeTag(Tag $tag): void
     {
-        if ($this->tags->removeElement($tag)) {
-            $tag->removeEntity($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Topic>
-     */
-    public function getTopics(): Collection
-    {
-        return $this->topics;
-    }
-
-    public function addTopic(Topic $topic): self
-    {
-        if (!$this->topics->contains($topic)) {
-            $this->topics[] = $topic;
-            $topic->addEntity($this);
-        }
-
-        return $this;
-    }
-
-    public function removeTopic(Topic $topic): self
-    {
-        if ($this->topics->removeElement($topic)) {
-            $topic->removeEntity($this);
-        }
-
-        return $this;
+        $this->tags->removeElement($tag);
     }
 
     /**
@@ -296,17 +208,15 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $this->valueList;
     }
 
-    public function addValueList(Value $valueList): self
+    public function addValueList(Value $valueList): void
     {
         if (!$this->valueList->contains($valueList)) {
-            $this->valueList[] = $valueList;
+            $this->valueList->add($valueList);
             $valueList->setEntity($this);
         }
-
-        return $this;
     }
 
-    public function removeValueList(Value $valueList): self
+    public function removeValueList(Value $valueList): void
     {
         if ($this->valueList->removeElement($valueList)) {
             // set the owning side to null (unless already changed)
@@ -314,8 +224,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
                 $valueList->setEntity(null);
             }
         }
-
-        return $this;
     }
 
     public function getRemark(): ?string
@@ -323,11 +231,9 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $this->remark;
     }
 
-    public function setRemark(?string $remark): self
+    public function setRemark(?string $remark): void
     {
         $this->remark = $remark;
-
-        return $this;
     }
 
     public function getSortNumber(): ?int
@@ -335,11 +241,9 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $this->sortNumber;
     }
 
-    public function setSortNumber(?int $sortNumber): self
+    public function setSortNumber(?int $sortNumber): void
     {
         $this->sortNumber = $sortNumber;
-
-        return $this;
     }
 
     /**
@@ -350,17 +254,15 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $this->collectLogs;
     }
 
-    public function addCollectLog(CollectLog $collectLog): self
+    public function addCollectLog(CollectLog $collectLog): void
     {
         if (!$this->collectLogs->contains($collectLog)) {
-            $this->collectLogs[] = $collectLog;
+            $this->collectLogs->add($collectLog);
             $collectLog->setEntity($this);
         }
-
-        return $this;
     }
 
-    public function removeCollectLog(CollectLog $collectLog): self
+    public function removeCollectLog(CollectLog $collectLog): void
     {
         if ($this->collectLogs->removeElement($collectLog)) {
             // set the owning side to null (unless already changed)
@@ -368,104 +270,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
                 $collectLog->setEntity(null);
             }
         }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, LikeLog>
-     */
-    public function getLikeLogs(): Collection
-    {
-        return $this->likeLogs;
-    }
-
-    public function addLikeLog(LikeLog $likeLog): self
-    {
-        if (!$this->likeLogs->contains($likeLog)) {
-            $this->likeLogs[] = $likeLog;
-            $likeLog->setEntity($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLikeLog(LikeLog $likeLog): self
-    {
-        if ($this->likeLogs->removeElement($likeLog)) {
-            // set the owning side to null (unless already changed)
-            if ($likeLog->getEntity() === $this) {
-                $likeLog->setEntity(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ShareLog>
-     */
-    public function getShareLogs(): Collection
-    {
-        return $this->shareLogs;
-    }
-
-    public function addShareLog(ShareLog $shareLog): self
-    {
-        if (!$this->shareLogs->contains($shareLog)) {
-            $this->shareLogs[] = $shareLog;
-            $shareLog->setEntity($this);
-        }
-
-        return $this;
-    }
-
-    public function removeShareLog(ShareLog $shareLog): self
-    {
-        if ($this->shareLogs->removeElement($shareLog)) {
-            // set the owning side to null (unless already changed)
-            if ($shareLog->getEntity() === $this) {
-                $shareLog->setEntity(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    public function renderRealStats(): array
-    {
-        return [
-            [
-                'text' => '点赞 ' . $this->getLikeLogs()->count(),
-                'fontStyle' => ['fontSize' => 12],
-            ],
-            [
-                'text' => '收藏 ' . $this->getCollectLogs()->count(),
-                'fontStyle' => ['fontSize' => 12],
-            ],
-            [
-                'text' => '分享 ' . $this->getShareLogs()->count(),
-                'fontStyle' => ['fontSize' => 12],
-            ],
-        ];
-    }
-
-    /**
-     * 获取统计数据.
-     *
-     * @return array<string, int>
-     */
-    #[Groups(groups: ['restful_read'])]
-    public function getRealStats(): array
-    {
-        return [
-            'likeTotal' => $this->getLikeLogs()->count(),
-            'collectTotal' => $this->getCollectLogs()->count(),
-            'shareTotal' => $this->getShareLogs()->count(),
-        ];
     }
 
     /**
@@ -478,7 +282,7 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     {
         $result = [];
         foreach ($this->getValueList() as $item) {
-            if ($item->getAttribute() !== null) {
+            if (null !== $item->getAttribute()) {
                 $result[$item->getAttribute()->getName()] = $item->getCastData();
             }
         }
@@ -486,16 +290,36 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $result;
     }
 
+    /**
+     * 获取产品型号（虚拟方法，用于EasyAdmin字段映射）.
+     */
+    public function getProductType(): ?string
+    {
+        $values = $this->getValues();
+        $productType = $values['product_type'] ?? null;
+
+        return \is_string($productType) ? $productType : null;
+    }
+
+    /**
+     * 获取内容（虚拟方法，用于EasyAdmin字段映射）.
+     */
+    public function getContent(): ?string
+    {
+        $values = $this->getValues();
+        $content = $values['content'] ?? null;
+
+        return \is_string($content) ? $content : null;
+    }
+
     public function getPublishTime(): ?\DateTimeImmutable
     {
         return $this->publishTime;
     }
 
-    public function setPublishTime(?\DateTimeImmutable $publishTime): self
+    public function setPublishTime(?\DateTimeImmutable $publishTime): void
     {
         $this->publishTime = $publishTime;
-
-        return $this;
     }
 
     public function getEndTime(): ?\DateTimeImmutable
@@ -503,11 +327,9 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         return $this->endTime;
     }
 
-    public function setEndTime(?\DateTimeImmutable $endTime): self
+    public function setEndTime(?\DateTimeImmutable $endTime): void
     {
         $this->endTime = $endTime;
-
-        return $this;
     }
 
     /**
@@ -531,33 +353,4 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     {
         return "cms_entity_{$this->getId()}";
     }
-
-    /**
-     * @return Collection<int, Comment>
-     */
-    public function getComments(): Collection
-    {
-        return $this->comments;
-    }
-
-    public function addComment(Comment $comment): static
-    {
-        if (!$this->comments->contains($comment)) {
-            $this->comments->add($comment);
-            $comment->setEntity($this);
-        }
-
-        return $this;
-    }
-
-    public function removeComment(Comment $comment): static
-    {
-        if ($this->comments->removeElement($comment)) {
-            // set the owning side to null (unless already changed)
-            if ($comment->getEntity() === $this) {
-                $comment->setEntity(null);
-            }
-        }
-
-        return $this;
-    }}
+}
