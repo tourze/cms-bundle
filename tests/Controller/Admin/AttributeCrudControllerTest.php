@@ -41,8 +41,7 @@ final class AttributeCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testListAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         $response = $client->request('GET', '/admin/cms/attribute');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -57,8 +56,7 @@ final class AttributeCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testNewAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         $client->request('GET', '/admin/cms/attribute/new');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -67,8 +65,7 @@ final class AttributeCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testCreateAttribute(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -103,8 +100,7 @@ final class AttributeCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testEditAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -139,8 +135,7 @@ final class AttributeCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testUpdateAttribute(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -182,8 +177,7 @@ final class AttributeCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testDetailAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -218,8 +212,7 @@ final class AttributeCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testDeleteAttribute(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -259,8 +252,7 @@ final class AttributeCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testValidationErrors(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         $crawler = $client->request('GET', '/admin/cms/attribute/new');
         $form = $crawler->selectButton('Create')->form();
@@ -274,8 +266,7 @@ final class AttributeCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testRequiredFieldValidation(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 测试所有必填字段的验证
         $crawler = $client->request('GET', '/admin/cms/attribute/new');
@@ -295,8 +286,7 @@ final class AttributeCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testSearchFilters(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();

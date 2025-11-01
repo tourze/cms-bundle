@@ -40,8 +40,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testListAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         $client->request('GET', '/admin/cms/model');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -63,8 +62,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testNewAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         $client->request('GET', '/admin/cms/model/new');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -75,8 +73,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testValidationErrors(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 测试表单验证功能
         $crawler = $client->request('GET', '/admin/cms/model/new');
@@ -113,8 +110,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testCreateModel(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         $crawler = $client->request('GET', '/admin/cms/model/new');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -140,8 +136,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testEditAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -165,8 +160,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testUpdateModel(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -200,8 +194,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testDetailAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -225,8 +218,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testDeleteModel(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -260,8 +252,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testRequiredFieldValidation(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 测试所有必填字段的验证
         $crawler = $client->request('GET', '/admin/cms/model/new');
@@ -278,8 +269,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testSearchFilters(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 创建测试数据
         $model1 = new Model();

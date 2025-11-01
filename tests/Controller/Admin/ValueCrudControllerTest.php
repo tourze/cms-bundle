@@ -45,8 +45,7 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testListAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         $client->request('GET', '/admin/cms/value');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -66,8 +65,7 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testNewAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         $client->request('GET', '/admin/cms/value/new');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -76,8 +74,7 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testCreateValue(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -128,8 +125,7 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testEditAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -180,8 +176,7 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testUpdateValue(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -245,8 +240,7 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testDetailAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -296,8 +290,7 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testDeleteValue(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();
@@ -351,8 +344,7 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testValidationErrors(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         $crawler = $client->request('GET', '/admin/cms/value/new');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -363,8 +355,7 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testSearchFilters(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 首先创建一个模型
         $model = new Model();

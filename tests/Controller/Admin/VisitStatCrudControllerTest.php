@@ -39,8 +39,7 @@ final class VisitStatCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testListAction(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         $client->request('GET', '/admin/cms/visit-stat');
         $this->assertSame(200, $client->getResponse()->getStatusCode());
@@ -55,8 +54,7 @@ final class VisitStatCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testValidationErrors(): void
     {
-        $client = self::createClientWithDatabase();
-        $this->loginAsAdmin($client);
+        $client = self::createAuthenticatedClient();
 
         // 访问列表页面来验证控制器基本功能
         $client->request('GET', '/admin/cms/visit-stat');
