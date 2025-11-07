@@ -8,7 +8,6 @@ use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Knp\Bundle\PaginatorBundle\KnpPaginatorBundle;
 use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
-use Tourze\AutoJsControlBundle\AutoJsControlBundle;
 use Tourze\BundleDependency\BundleDependencyInterface;
 use Tourze\CatalogBundle\CatalogBundle;
 use Tourze\CmsCollectBundle\CmsCollectBundle;
@@ -33,7 +32,6 @@ class CmsBundle extends Bundle implements BundleDependencyInterface
     {
         return [
             DoctrineBundle::class => ['all' => true],
-            AutoJsControlBundle::class => ['all' => true],
             CatalogBundle::class => ['all' => true],
             TagManageBundle::class => ['all' => true],
             CmsCollectBundle::class => ['all' => true],
