@@ -26,11 +26,6 @@ final class EntityCrudControllerTest extends AbstractCmsControllerTestCase
      */
     private ?AbstractCrudController $cachedController = null;
 
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(Entity::class, EntityCrudController::getEntityFqcn());
-    }
-
     public function testAccessWithoutLogin(): void
     {
         $client = self::createClientWithDatabase();

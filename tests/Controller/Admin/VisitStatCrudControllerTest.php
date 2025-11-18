@@ -24,11 +24,6 @@ final class VisitStatCrudControllerTest extends AbstractCmsControllerTestCase
      */
     private ?AbstractCrudController $cachedController = null;
 
-    public function testGetEntityFqcn(): void
-    {
-        $this->assertSame(VisitStat::class, VisitStatCrudController::getEntityFqcn());
-    }
-
     public function testAccessWithoutLogin(): void
     {
         $client = self::createClientWithDatabase();

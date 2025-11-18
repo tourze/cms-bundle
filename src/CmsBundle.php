@@ -34,8 +34,6 @@ class CmsBundle extends Bundle implements BundleDependencyInterface
             DoctrineBundle::class => ['all' => true],
             CatalogBundle::class => ['all' => true],
             TagManageBundle::class => ['all' => true],
-            CmsCollectBundle::class => ['all' => true],
-            CmsLikeBundle::class => ['all' => true],
             DoctrineAsyncInsertBundle::class => ['all' => true],
             DoctrineIndexedBundle::class => ['all' => true],
             DoctrineTimestampBundle::class => ['all' => true],
