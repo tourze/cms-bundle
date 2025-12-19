@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Service;
+namespace Tourze\CmsBundle\Tests\Service;
 
-use CmsBundle\Service\ValueService;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\CmsBundle\Service\ValueService;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
 /**

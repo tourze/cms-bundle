@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Repository;
+namespace Tourze\CmsBundle\Tests\Repository;
 
-use CmsBundle\Entity\Attribute;
-use CmsBundle\Entity\Model;
-use CmsBundle\Enum\FieldType;
-use CmsBundle\Repository\AttributeRepository;
-use CmsBundle\Repository\ModelRepository;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\CmsBundle\Entity\Attribute;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Enum\FieldType;
+use Tourze\CmsBundle\Repository\AttributeRepository;
+use Tourze\CmsBundle\Repository\ModelRepository;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractRepositoryTestCase;
 
 /**

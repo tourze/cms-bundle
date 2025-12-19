@@ -52,7 +52,7 @@ composer require tourze/cms-bundle
 ```php
 return [
     // ...
-    CmsBundle\CmsBundle::class => ['all' => true],
+    Tourze\CmsBundle\Tourze\CmsBundle::class => ['all' => true],
 ];
 ```
 
@@ -75,7 +75,7 @@ return [
 在 EAV 属性中按关键词搜索内容：
 
 ```php
-use CmsBundle\Service\ContentService;
+use Tourze\CmsBundle\Service\ContentService;
 
 class YourController
 {
@@ -95,7 +95,7 @@ class YourController
 异步更新访问统计：
 
 ```php
-use CmsBundle\Service\StatService;
+use Tourze\CmsBundle\Service\StatService;
 
 class YourController
 {
@@ -167,7 +167,7 @@ class YourController
 扩展 EAV 模型系统以支持自定义内容类型：
 
 ```php
-use CmsBundle\Service\EntityService;use CmsBundle\Service\ModelService;
+use Tourze\CmsBundle\Service\EntityService;use Tourze\CmsBundle\Service\ModelService;
 
 class CustomContentService
 {
@@ -189,7 +189,7 @@ class CustomContentService
 使用 ContentService 实现复杂搜索场景：
 
 ```php
-use CmsBundle\Service\ContentService;
+use Tourze\CmsBundle\Service\ContentService;
 
 $qb = $entityRepository->createQueryBuilder('e');
 $this->contentService->searchByKeyword($qb, '搜索关键词', $model);

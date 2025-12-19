@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Service;
+namespace Tourze\CmsBundle\Tests\Service;
 
-use CmsBundle\Service\AttributeControllerLoader;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\CmsBundle\Service\AttributeControllerLoader;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
 /**

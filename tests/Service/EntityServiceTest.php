@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Service;
+namespace Tourze\CmsBundle\Tests\Service;
 
-use CmsBundle\Entity\Entity;
-use CmsBundle\Enum\EntityState;
-use CmsBundle\Repository\EntityRepository;
-use CmsBundle\Service\EntityService;
-use CmsBundle\Service\ModelService;
 use Doctrine\ORM\QueryBuilder;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Enum\EntityState;
+use Tourze\CmsBundle\Repository\EntityRepository;
+use Tourze\CmsBundle\Service\EntityService;
+use Tourze\CmsBundle\Service\ModelService;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
 /**

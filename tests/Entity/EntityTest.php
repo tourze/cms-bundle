@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Entity;
+namespace Tourze\CmsBundle\Tests\Entity;
 
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
-use CmsBundle\Entity\Value;
-use CmsBundle\Enum\EntityState;
 use Doctrine\Common\Collections\Collection;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Entity\Value;
+use Tourze\CmsBundle\Enum\EntityState;
 use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
 /**

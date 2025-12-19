@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\DataFixtures;
+namespace Tourze\CmsBundle\DataFixtures;
 
-use CmsBundle\Entity\Model;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\DependencyInjection\Attribute\When;
+use Tourze\CmsBundle\Entity\Model;
 
 #[When(env: 'test')]
 #[When(env: 'dev')]
-class ModelFixtures extends Fixture
+final class ModelFixtures extends Fixture
 {
     public const MODEL_ENTERTAINMENT_REFERENCE = 'model-entertainment';
 

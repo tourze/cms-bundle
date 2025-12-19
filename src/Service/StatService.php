@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Service;
+namespace Tourze\CmsBundle\Service;
 
 use Carbon\CarbonImmutable;
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\VisitStat;
-use CmsBundle\Repository\VisitStatRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\VisitStat;
+use Tourze\CmsBundle\Repository\VisitStatRepository;
 use Tourze\DoctrineEntityLockBundle\Service\EntityLockService;
 
 #[WithMonologChannel(channel: 'cms')]

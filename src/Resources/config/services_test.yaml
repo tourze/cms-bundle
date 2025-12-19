@@ -5,5 +5,5 @@ services:
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
     public: true
 
-  CmsBundle\DataFixtures\:
+  Tourze\CmsBundle\DataFixtures\:
     resource: '../../DataFixtures/'

@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Controller\Admin;
+namespace Tourze\CmsBundle\Tests\Controller\Admin;
 
-use CmsBundle\Controller\Admin\ModelCrudController;
-use CmsBundle\Entity\Model;
-use CmsBundle\Tests\AbstractCmsControllerTestCase;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Tourze\CmsBundle\Controller\Admin\ModelCrudController;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Tests\AbstractCmsControllerTestCase;
 
 /**
  * @internal
@@ -46,12 +45,7 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testCrudConfiguration(): void
     {
-        $client = self::createClientWithDatabase();
-        $container = $client->getContainer();
-        $adminUrlGenerator = $container->get(AdminUrlGenerator::class);
-        $this->assertInstanceOf(AdminUrlGenerator::class, $adminUrlGenerator);
-
-        $controller = new ModelCrudController($adminUrlGenerator);
+        $controller = self::getService(ModelCrudController::class);
         $this->assertInstanceOf(ModelCrudController::class, $controller);
     }
 
@@ -93,10 +87,12 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
                 'should not be blank',
                 (string) $client->getResponse()->getContent()
             );
-        } catch (\TypeError $e) {
-            // 严格类型模式下预期的行为 - setTitle(string)不接受null
+        } catch (\TypeError|\Symfony\Component\PropertyAccess\Exception\InvalidTypeException $e) {
+            // 严格类型模式下预期的行为：
+            // - TypeError: setTitle(string)不接受null
+            // - InvalidTypeException: PropertyAccessor 在尝试设置属性时检测到类型不匹配
             $this->assertStringContainsString('string', $e->getMessage());
-            $this->assertStringContainsString('null given', $e->getMessage());
+            $this->assertStringContainsString('null', $e->getMessage());
 
             // 这证明了验证系统正在工作 - 通过类型安全防护
             $this->assertTrue(true, 'Type safety validation is working as expected');
@@ -341,13 +337,8 @@ final class ModelCrudControllerTest extends AbstractCmsControllerTestCase
             return $this->cachedController;
         }
 
-        // 确保创建客户端（会自动设置为全局客户端）
-        $client = static::createClient();
-        $container = $client->getContainer();
-        $adminUrlGenerator = $container->get(AdminUrlGenerator::class);
-        $this->assertInstanceOf(AdminUrlGenerator::class, $adminUrlGenerator);
-
-        $this->cachedController = new ModelCrudController($adminUrlGenerator);
+        // 从容器中获取服务，而不是直接实例化
+        $this->cachedController = self::getService(ModelCrudController::class);
 
         return $this->cachedController;
     }

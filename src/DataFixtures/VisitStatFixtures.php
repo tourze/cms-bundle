@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\DataFixtures;
+namespace Tourze\CmsBundle\DataFixtures;
 
-use CmsBundle\Entity\VisitStat;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\DependencyInjection\Attribute\When;
+use Tourze\CmsBundle\Entity\VisitStat;
 
 #[When(env: 'test')]
 #[When(env: 'dev')]
-class VisitStatFixtures extends Fixture
+final class VisitStatFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void
     {

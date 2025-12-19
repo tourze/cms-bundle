@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Procedure;
+namespace Tourze\CmsBundle\Tests\Procedure;
 
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
-use CmsBundle\Enum\EntityState;
-use CmsBundle\Procedure\GetCmsEntityDetail;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Enum\EntityState;
+use Tourze\CmsBundle\Param\GetCmsEntityDetailParam;
+use Tourze\CmsBundle\Procedure\GetCmsEntityDetail;
 use Tourze\JsonRPC\Core\Exception\ApiException;
-use Tourze\JsonRPC\Core\Tests\AbstractProcedureTestCase;
+use Tourze\PHPUnitJsonRPC\AbstractProcedureTestCase;
 
 /**
  * @internal
@@ -39,24 +40,22 @@ final class GetCmsEntityDetailTest extends AbstractProcedureTestCase
         // 执行测试
         $entityId = $entity->getId();
         $this->assertNotNull($entityId, 'Entity ID should not be null');
-        $this->procedure->entityId = $entityId;
-        $result = $this->procedure->execute();
+        $result = $this->procedure->execute(new GetCmsEntityDetailParam(entityId: $entityId));
+        $data = $result->data;
 
         // 验证结果
-        $this->assertArrayHasKey('id', $result);
-        $this->assertSame($entity->getId(), $result['id']);
-        $this->assertSame('Test Article', $result['title']);
-        $this->assertSame(EntityState::PUBLISHED->value, $result['state']);
+        $this->assertArrayHasKey('id', $data);
+        $this->assertSame($entity->getId(), $data['id']);
+        $this->assertSame('Test Article', $data['title']);
+        $this->assertSame(EntityState::PUBLISHED->value, $data['state']);
     }
 
     public function testExecuteNotFound(): void
     {
-        $this->procedure->entityId = 999999;
-
         $this->expectException(ApiException::class);
         $this->expectExceptionMessage('记录不存在');
 
-        $this->procedure->execute();
+        $this->procedure->execute(new GetCmsEntityDetailParam(entityId: 999999));
     }
 
     public function testExecuteNotPublished(): void
@@ -76,12 +75,11 @@ final class GetCmsEntityDetailTest extends AbstractProcedureTestCase
         // 执行测试
         $entityId = $entity->getId();
         $this->assertNotNull($entityId, 'Entity ID should not be null');
-        $this->procedure->entityId = $entityId;
 
         $this->expectException(ApiException::class);
         $this->expectExceptionMessage('记录不存在');
 
-        $this->procedure->execute();
+        $this->procedure->execute(new GetCmsEntityDetailParam(entityId: $entityId));
     }
 
     public function testExecuteWithUser(): void
@@ -101,15 +99,15 @@ final class GetCmsEntityDetailTest extends AbstractProcedureTestCase
         // 执行测试（不设置认证用户，测试匿名访问）
         $entityId = $entity->getId();
         $this->assertNotNull($entityId, 'Entity ID should not be null');
-        $this->procedure->entityId = $entityId;
-        $result = $this->procedure->execute();
+        $result = $this->procedure->execute(new GetCmsEntityDetailParam(entityId: $entityId));
+        $data = $result->data;
 
         // 验证结果
-        $this->assertArrayHasKey('id', $result);
-        $this->assertSame($entity->getId(), $result['id']);
-        $this->assertSame('User Article', $result['title']);
-        $this->assertArrayHasKey('isLike', $result);
-        $this->assertFalse($result['isLike']); // 匿名用户默认为false
+        $this->assertArrayHasKey('id', $data);
+        $this->assertSame($entity->getId(), $data['id']);
+        $this->assertSame('User Article', $data['title']);
+        $this->assertArrayHasKey('isLike', $data);
+        $this->assertFalse($data['isLike']); // 匿名用户默认为false
     }
 
     protected function onSetUp(): void

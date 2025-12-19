@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Controller;
+namespace Tourze\CmsBundle\Controller;
 
-use CmsBundle\Service\ModelService;
 use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
+use Tourze\CmsBundle\Service\ModelService;
 
 final class SqlController extends AbstractController
 {

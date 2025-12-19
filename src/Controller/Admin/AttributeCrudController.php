@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Controller\Admin;
+namespace Tourze\CmsBundle\Controller\Admin;
 
-use CmsBundle\Entity\Attribute;
-use CmsBundle\Enum\FieldType;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -25,6 +23,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\ChoiceFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Tourze\CmsBundle\Entity\Attribute;
+use Tourze\CmsBundle\Enum\FieldType;
 
 /**
  * 属性字段管理控制器.

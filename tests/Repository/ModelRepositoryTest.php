@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Repository;
+namespace Tourze\CmsBundle\Tests\Repository;
 
-use CmsBundle\Entity\Model;
-use CmsBundle\Repository\ModelRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Repository\ModelRepository;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractRepositoryTestCase;
 
 /**

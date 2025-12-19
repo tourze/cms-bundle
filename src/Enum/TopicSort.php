@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Enum;
+namespace Tourze\CmsBundle\Enum;
 
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;

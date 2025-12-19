@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Procedure;
+namespace Tourze\CmsBundle\Tests\Procedure;
 
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
-use CmsBundle\Enum\EntityState;
-use CmsBundle\Procedure\GetCmsEntityList;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\CatalogBundle\Entity\Catalog;
 use Tourze\CatalogBundle\Entity\CatalogType;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Enum\EntityState;
+use Tourze\CmsBundle\Param\GetCmsEntityListParam;
+use Tourze\CmsBundle\Procedure\GetCmsEntityList;
 use Tourze\JsonRPC\Core\Exception\ApiException;
-use Tourze\JsonRPC\Core\Tests\AbstractProcedureTestCase;
+use Tourze\PHPUnitJsonRPC\AbstractProcedureTestCase;
 
 /**
  * @internal
@@ -59,18 +60,18 @@ final class GetCmsEntityListTest extends AbstractProcedureTestCase
         $this->persistAndFlush($entity2);
 
         // 执行测试
-        $this->procedure->catalogId = $catalog->getId();
-        $result = $this->procedure->execute();
+        $result = $this->procedure->execute(new GetCmsEntityListParam(catalogId: $catalog->getId()));
+        $data = $result->data;
 
         // 验证结果
-        $this->assertIsArray($result);
-        $this->assertArrayHasKey('list', $result);
-        $this->assertArrayHasKey('pagination', $result);
-        $this->assertIsArray($result['pagination']);
-        $this->assertArrayHasKey('total', $result['pagination']);
-        $this->assertArrayHasKey('current', $result['pagination']);
-        $this->assertArrayHasKey('pageSize', $result['pagination']);
-        $this->assertArrayHasKey('hasMore', $result['pagination']);
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('list', $data);
+        $this->assertArrayHasKey('pagination', $data);
+        $this->assertIsArray($data['pagination']);
+        $this->assertArrayHasKey('total', $data['pagination']);
+        $this->assertArrayHasKey('current', $data['pagination']);
+        $this->assertArrayHasKey('pageSize', $data['pagination']);
+        $this->assertArrayHasKey('hasMore', $data['pagination']);
     }
 
     public function testExecuteWithKeyword(): void
@@ -108,13 +109,14 @@ final class GetCmsEntityListTest extends AbstractProcedureTestCase
         $this->persistAndFlush($entity2);
 
         // 测试关键词过滤
-        $this->procedure->catalogId = $catalog->getId();
-        $this->procedure->keyword = 'Breaking';
+        $result = $this->procedure->execute(new GetCmsEntityListParam(
+            catalogId: $catalog->getId(),
+            keyword: 'Breaking'
+        ));
+        $data = $result->data;
 
-        $result = $this->procedure->execute();
-
-        $this->assertArrayHasKey('list', $result);
-        $this->assertArrayHasKey('pagination', $result);
+        $this->assertArrayHasKey('list', $data);
+        $this->assertArrayHasKey('pagination', $data);
     }
 
     public function testExecuteWithModelCode(): void
@@ -145,13 +147,14 @@ final class GetCmsEntityListTest extends AbstractProcedureTestCase
         $this->persistAndFlush($entity);
 
         // 测试模型代码过滤
-        $this->procedure->catalogId = $catalog->getId();
-        $this->procedure->modelCode = 'article';
+        $result = $this->procedure->execute(new GetCmsEntityListParam(
+            catalogId: $catalog->getId(),
+            modelCode: 'article'
+        ));
+        $data = $result->data;
 
-        $result = $this->procedure->execute();
-
-        $this->assertArrayHasKey('list', $result);
-        $this->assertArrayHasKey('pagination', $result);
+        $this->assertArrayHasKey('list', $data);
+        $this->assertArrayHasKey('pagination', $data);
     }
 
     public function testExecuteEmptyCatalog(): void
@@ -169,17 +172,17 @@ final class GetCmsEntityListTest extends AbstractProcedureTestCase
         $this->persistAndFlush($catalog);
 
         // 执行测试
-        $this->procedure->catalogId = $catalog->getId();
-        $result = $this->procedure->execute();
+        $result = $this->procedure->execute(new GetCmsEntityListParam(catalogId: $catalog->getId()));
+        $data = $result->data;
 
         // 验证结果
-        $this->assertArrayHasKey('list', $result);
-        $this->assertArrayHasKey('pagination', $result);
+        $this->assertArrayHasKey('list', $data);
+        $this->assertArrayHasKey('pagination', $data);
 
         // 确保pagination是数组
-        $this->assertIsArray($result['pagination']);
+        $this->assertIsArray($data['pagination']);
         /** @var array<string, mixed> $pagination */
-        $pagination = $result['pagination'];
+        $pagination = $data['pagination'];
 
         $this->assertSame(0, $pagination['total']);
         $this->assertSame(1, $pagination['current']);
@@ -187,18 +190,16 @@ final class GetCmsEntityListTest extends AbstractProcedureTestCase
         $this->assertFalse($pagination['hasMore']);
 
         // 确保list是可计数的
-        $this->assertIsArray($result['list']);
-        $this->assertCount(0, $result['list']);
+        $this->assertIsArray($data['list']);
+        $this->assertCount(0, $data['list']);
     }
 
     public function testExecuteNotFoundCatalog(): void
     {
-        $this->procedure->catalogId = 999999;
-
         $this->expectException(ApiException::class);
         $this->expectExceptionMessage('目录不存在');
 
-        $this->procedure->execute();
+        $this->procedure->execute(new GetCmsEntityListParam(catalogId: 999999));
     }
 
     public function testExecuteOnlyPublished(): void
@@ -236,12 +237,12 @@ final class GetCmsEntityListTest extends AbstractProcedureTestCase
         $this->persistAndFlush($draftEntity);
 
         // 执行测试
-        $this->procedure->catalogId = $catalog->getId();
-        $result = $this->procedure->execute();
+        $result = $this->procedure->execute(new GetCmsEntityListParam(catalogId: $catalog->getId()));
+        $data = $result->data;
 
         // 应该只返回已发布的文章
-        $this->assertArrayHasKey('list', $result);
-        $this->assertArrayHasKey('pagination', $result);
+        $this->assertArrayHasKey('list', $data);
+        $this->assertArrayHasKey('pagination', $data);
     }
 
     protected function onSetUp(): void

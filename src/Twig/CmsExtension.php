@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Twig;
+namespace Tourze\CmsBundle\Twig;
 
-use CmsBundle\Entity\Entity;
-use CmsBundle\Enum\EntityState;
-use CmsBundle\Exception\ModelNotFoundException;
-use CmsBundle\Service\EntityService;
-use CmsBundle\Service\ModelService;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Enum\EntityState;
+use Tourze\CmsBundle\Exception\ModelNotFoundException;
+use Tourze\CmsBundle\Service\EntityService;
+use Tourze\CmsBundle\Service\ModelService;
 use Twig\Attribute\AsTwigFunction;
 
 readonly class CmsExtension

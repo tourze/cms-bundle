@@ -1,19 +1,27 @@
 services:
-  # default configuration for services in *this* file
   _defaults:
-    autowire: true      # Automatically injects dependencies in your services.
-    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-    public: true
+    autowire: true
+    autoconfigure: true
+    public: false
 
-  CmsBundle\Controller\:
+  Tourze\CmsBundle\Controller\:
     resource: '../../Controller/'
-  CmsBundle\EventSubscriber\:
-    resource: '../../EventSubscriber/'
-  CmsBundle\Procedure\:
-    resource: '../../Procedure/'
-  CmsBundle\Repository\:
+  Tourze\CmsBundle\Repository\:
     resource: '../../Repository/'
-  CmsBundle\Service\:
+  Tourze\CmsBundle\Service\:
     resource: '../../Service/'
-  CmsBundle\Twig\:
+    public: true
+  Tourze\CmsBundle\EventSubscriber\:
+    resource: '../../EventSubscriber/'
+    public: true
+  Tourze\CmsBundle\Procedure\:
+    resource: '../../Procedure/'
+    public: true
+  Tourze\CmsBundle\Twig\:
     resource: '../../Twig/'
+
+  # 接口绑定到默认空实现，对应 bundle 安装后会通过装饰覆盖
+  Tourze\CmsBundle\Service\LikeServiceInterface:
+    alias: Tourze\CmsBundle\Service\NullLikeService
+  Tourze\CmsBundle\Service\CollectServiceInterface:
+    alias: Tourze\CmsBundle\Service\NullCollectService

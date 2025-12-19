@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Entity;
+namespace Tourze\CmsBundle\Entity;
 
-// use CmsBundle\Entity\Category;
-use CmsBundle\Repository\ModelRepository;
+// use Tourze\CmsBundle\Entity\Category;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -15,6 +14,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
+use Tourze\CmsBundle\Repository\ModelRepository;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;

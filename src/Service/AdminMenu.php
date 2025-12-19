@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Service;
+namespace Tourze\CmsBundle\Service;
 
-use CmsBundle\Entity\Attribute;
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
-use CmsBundle\Entity\Value;
-use CmsBundle\Entity\VisitStat;
 use Knp\Menu\ItemInterface;
+use Tourze\CmsBundle\Entity\Attribute;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Entity\Value;
+use Tourze\CmsBundle\Entity\VisitStat;
 use Tourze\EasyAdminMenuBundle\Service\LinkGeneratorInterface;
 use Tourze\EasyAdminMenuBundle\Service\MenuProviderInterface;
 use Tourze\TagManageBundle\Entity\Tag;

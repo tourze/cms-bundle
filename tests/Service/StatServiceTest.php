@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Service;
+namespace Tourze\CmsBundle\Tests\Service;
 
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\VisitStat;
-use CmsBundle\Enum\EntityState;
-use CmsBundle\Repository\VisitStatRepository;
-use CmsBundle\Service\StatService;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\VisitStat;
+use Tourze\CmsBundle\Enum\EntityState;
+use Tourze\CmsBundle\Repository\VisitStatRepository;
+use Tourze\CmsBundle\Service\StatService;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
 /**

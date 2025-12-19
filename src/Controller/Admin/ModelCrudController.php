@@ -2,11 +2,8 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Controller\Admin;
+namespace Tourze\CmsBundle\Controller\Admin;
 
-use CmsBundle\Entity\Model;
-use CmsBundle\Enum\ContentSort;
-use CmsBundle\Enum\TopicSort;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
@@ -25,6 +22,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\BooleanFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Enum\ContentSort;
+use Tourze\CmsBundle\Enum\TopicSort;
 
 /**
  * 模型管理控制器.

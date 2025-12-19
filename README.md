@@ -52,7 +52,7 @@ Add the bundle to your `config/bundles.php`:
 ```php
 return [
     // ...
-    CmsBundle\CmsBundle::class => ['all' => true],
+    Tourze\CmsBundle\Tourze\CmsBundle::class => ['all' => true],
 ];
 ```
 
@@ -75,7 +75,7 @@ The bundle provides 6 core entities:
 Search content by keywords in EAV attributes:
 
 ```php
-use CmsBundle\Service\ContentService;
+use Tourze\CmsBundle\Service\ContentService;
 
 class YourController
 {
@@ -95,7 +95,7 @@ class YourController
 Update visit statistics asynchronously:
 
 ```php
-use CmsBundle\Service\StatService;
+use Tourze\CmsBundle\Service\StatService;
 
 class YourController
 {
@@ -167,7 +167,7 @@ The bundle creates the following tables:
 Extend the EAV model system for custom content types:
 
 ```php
-use CmsBundle\Service\EntityService;use CmsBundle\Service\ModelService;
+use Tourze\CmsBundle\Service\EntityService;use Tourze\CmsBundle\Service\ModelService;
 
 class CustomContentService
 {
@@ -189,7 +189,7 @@ class CustomContentService
 Implement complex search scenarios using ContentService:
 
 ```php
-use CmsBundle\Service\ContentService;
+use Tourze\CmsBundle\Service\ContentService;
 
 $qb = $entityRepository->createQueryBuilder('e');
 $this->contentService->searchByKeyword($qb, 'search term', $model);

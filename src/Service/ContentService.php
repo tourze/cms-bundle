@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Service;
+namespace Tourze\CmsBundle\Service;
 
-use CmsBundle\Entity\Model;
 use Doctrine\ORM\QueryBuilder;
+use Tourze\CmsBundle\Entity\Model;
 
 readonly class ContentService
 {

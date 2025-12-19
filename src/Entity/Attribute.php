@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Entity;
+namespace Tourze\CmsBundle\Entity;
 
-use CmsBundle\Enum\FieldType;
-use CmsBundle\Repository\AttributeRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
+use Tourze\CmsBundle\Enum\FieldType;
+use Tourze\CmsBundle\Repository\AttributeRepository;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;

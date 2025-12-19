@@ -2,67 +2,63 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Procedure;
+namespace Tourze\CmsBundle\Procedure;
 
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
-use CmsBundle\Service\ContentService;
-use CmsBundle\Service\EntityService;
-use CmsBundle\Service\ModelService;
-use CmsBundle\Service\StatService;
 use Symfony\Bundle\SecurityBundle\Security;
-use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Tourze\CatalogBundle\Entity\Catalog;
 use Tourze\CatalogBundle\Service\CatalogService;
-use Tourze\CmsLikeBundle\Service\LikeService;
+use Tourze\CmsBundle\Entity\Attribute;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Entity\Value;
+use Tourze\CmsBundle\Param\GetCmsEntityListParam;
+use Tourze\CmsBundle\Service\CollectServiceInterface;
+use Tourze\CmsBundle\Service\ContentService;
+use Tourze\CmsBundle\Service\EntityService;
+use Tourze\CmsBundle\Service\LikeServiceInterface;
+use Tourze\CmsBundle\Service\ModelService;
+use Tourze\CmsBundle\Service\StatService;
 use Tourze\JsonRPC\Core\Attribute\MethodDoc;
 use Tourze\JsonRPC\Core\Attribute\MethodExpose;
-use Tourze\JsonRPC\Core\Attribute\MethodParam;
 use Tourze\JsonRPC\Core\Attribute\MethodTag;
+use Tourze\JsonRPC\Core\Contracts\RpcParamInterface;
 use Tourze\JsonRPC\Core\Exception\ApiException;
 use Tourze\JsonRPC\Core\Procedure\BaseProcedure;
+use Tourze\JsonRPC\Core\Result\ArrayResult;
 use Tourze\JsonRPCPaginatorBundle\Procedure\PaginatorTrait;
+use Tourze\TagManageBundle\Entity\Tag;
 use Yiisoft\Arrays\ArrayHelper;
 
 #[MethodTag(name: '内容管理')]
 #[MethodDoc(summary: '拉取CMS内容列表')]
 #[MethodExpose(method: 'GetCmsEntityList')]
-class GetCmsEntityList extends BaseProcedure
+final class GetCmsEntityList extends BaseProcedure
 {
     use PaginatorTrait;
-
-    #[MethodParam(description: '文章目录')]
-    public string|int|null $catalogId = null;
-
-    #[MethodParam(description: '模型代号')]
-    public ?string $modelCode = null;
-
-    #[MethodParam(description: '搜索关键词')]
-    public string $keyword = '';
 
     public function __construct(
         private readonly CatalogService $catalogService,
         private readonly ModelService $modelService,
         private readonly EntityService $entityService,
-        private readonly NormalizerInterface $normalizer,
         private readonly ContentService $contentService,
         private readonly StatService $statService,
         private readonly Security $security,
-        private readonly LikeService $likeService,
+        private readonly LikeServiceInterface $likeService,
+        private readonly CollectServiceInterface $collectService,
     ) {
     }
 
     /**
-     * @return array<string, mixed>
+     * @phpstan-param GetCmsEntityListParam $param
      */
-    public function execute(): array
+    public function execute(GetCmsEntityListParam|RpcParamInterface $param): ArrayResult
     {
         $user = $this->security->getUser();
         $qb = $this->entityService->createPublishedEntitiesQueryBuilder();
 
         // 查找指定目录
-        if (null !== $this->catalogId) {
-            $catalogs = $this->catalogService->findBy(['id' => $this->catalogId]);
+        if (null !== $param->catalogId) {
+            $catalogs = $this->catalogService->findBy(['id' => $param->catalogId]);
             if ([] === $catalogs) {
                 throw new ApiException('目录不存在');
             }
@@ -71,25 +67,25 @@ class GetCmsEntityList extends BaseProcedure
             $qb->setParameter('catalogs', ArrayHelper::getColumn($catalogs, fn (Catalog $catalog) => $catalog->getId()));
         }
 
-        if ('' !== $this->keyword) {
-            $qb->andWhere('a.title LIKE :title')->setParameter('title', "%{$this->keyword}%");
+        if ('' !== $param->keyword) {
+            $qb->andWhere('a.title LIKE :title')->setParameter('title', "%{$param->keyword}%");
         }
 
         // 查找指定模型
-        if (null !== $this->modelCode) {
-            $models = $this->modelService->findBy(['code' => $this->modelCode]);
+        if (null !== $param->modelCode) {
+            $models = $this->modelService->findBy(['code' => $param->modelCode]);
             $qb->innerJoin('a.model', 'm');
             $qb->andWhere('m.id IN (:models)');
             $qb->setParameter('models', ArrayHelper::getColumn($models, fn (Model $category) => $category->getId()));
 
-            if ('' !== $this->keyword) {
+            if ('' !== $param->keyword) {
                 foreach ($models as $model) {
-                    $this->contentService->searchByKeyword($qb, $this->keyword, $model);
+                    $this->contentService->searchByKeyword($qb, $param->keyword, $model);
                 }
             }
         }
 
-        return $this->fetchList($qb, fn (Entity $item) => $this->format($item, $user));
+        return new ArrayResult($this->fetchList($qb, fn (Entity $item) => $this->format($item, $user), null, $param));
     }
 
     /**
@@ -98,25 +94,112 @@ class GetCmsEntityList extends BaseProcedure
     private function format(Entity $item, mixed $user): array
     {
         $visitTotal = $this->statService->getVisitTotal($item);
-        $isLike = false;
-        if (null !== $user) {
-            $log = $this->likeService->findLikeLogBy([
-                'entity' => $item,
-                'valid' => true,
-                'user' => $this->security->getUser(),
-            ]);
-            $isLike = (bool) $log;
+        $isLike = null !== $user && $this->likeService->isLikedByUser($item, $user);
+        $isCollected = null !== $user && $this->collectService->isCollectedByUser($item, $user);
+
+        return [
+            'id' => $item->getId(),
+            'title' => $item->getTitle(),
+            'model' => $this->formatModel($item->getModel()),
+            'catalogs' => $this->formatCatalogs($item->getCatalogs()->toArray()),
+            'tags' => $this->formatTags($item->getTags()->toArray()),
+            'valueList' => $this->formatValueList($item->getValueList()->toArray()),
+            'publishTime' => $item->getPublishTime()?->format('c'),
+            'endTime' => $item->getEndTime()?->format('c'),
+            'state' => $item->getState()->value,
+            'values' => $item->getValues(),
+            'visitTotal' => $visitTotal,
+            'isLike' => $isLike,
+            'isCollected' => $isCollected,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function formatModel(?Model $model): ?array
+    {
+        if (null === $model) {
+            return null;
         }
 
-        $normalized = $this->normalizer->normalize($item, 'array', ['groups' => 'restful_read']);
-        if (!\is_array($normalized)) {
-            $normalized = [];
+        return [
+            'code' => $model->getCode(),
+            'title' => $model->getTitle(),
+            'allowLike' => $model->getAllowLike(),
+            'allowCollect' => $model->getAllowCollect(),
+            'allowShare' => $model->getAllowShare(),
+            'sortNumber' => $model->getSortNumber(),
+        ];
+    }
+
+    /**
+     * @param array<int, Catalog> $catalogs
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function formatCatalogs(array $catalogs): array
+    {
+        $result = [];
+        foreach ($catalogs as $catalog) {
+            $result[] = [
+                'id' => $catalog->getId(),
+                'name' => $catalog->getName(),
+            ];
         }
-        /** @var array<string, mixed> $result */
-        $result = $normalized;
-        $result['visitTotal'] = $visitTotal;
-        $result['isLike'] = $isLike;
 
         return $result;
+    }
+
+    /**
+     * @param array<int, Tag> $tags
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function formatTags(array $tags): array
+    {
+        $result = [];
+        foreach ($tags as $tag) {
+            $result[] = [
+                'id' => $tag->getId(),
+                'name' => $tag->getName(),
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array<int, Value> $valueList
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function formatValueList(array $valueList): array
+    {
+        $result = [];
+        foreach ($valueList as $value) {
+            $result[] = [
+                'attribute' => $this->formatAttribute($value->getAttribute()),
+                'data' => $value->getData(),
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function formatAttribute(?Attribute $attribute): ?array
+    {
+        if (null === $attribute) {
+            return null;
+        }
+
+        return [
+            'name' => $attribute->getName(),
+            'title' => $attribute->getTitle(),
+            'type' => $attribute->getType()?->value,
+        ];
     }
 }

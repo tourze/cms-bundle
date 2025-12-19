@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Controller\Admin;
+namespace Tourze\CmsBundle\Controller\Admin;
 
-use CmsBundle\Entity\Value;
-use CmsBundle\Enum\FieldType;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -20,6 +18,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
+use Tourze\CmsBundle\Entity\Value;
+use Tourze\CmsBundle\Enum\FieldType;
 
 /**
  * CMS数据值管理控制器.
@@ -302,15 +302,18 @@ final class ValueCrudController extends AbstractCrudController
 
     /**
      * 创建原始数据字段配置.
+     *
+     * 使用虚拟字段名 rawDataJson 避免 EasyAdmin 尝试将数组类型的 rawData 属性直接转换为字符串
      */
     private function createRawDataField(): TextField
     {
-        return TextField::new('rawData', '原始数据数组')
+        return TextField::new('rawDataJson', '原始数据数组')
             ->onlyOnDetail()
             ->setHelp('原始数据的数组形式')
-            ->formatValue(function ($value) {
-                return \is_array($value) ? json_encode($value, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE) : '[]';
-            });
+            ->setVirtual(true)
+            ->formatValue(fn ($value, $entity) => $entity instanceof Value
+                ? $this->encodeJsonPretty($entity->getRawData())
+                : '[]');
     }
 
     /**
@@ -413,9 +416,7 @@ final class ValueCrudController extends AbstractCrudController
 
         $castData = $entity->getCastData();
         if (\is_array($castData)) {
-            $result = json_encode($castData, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
-
-            return false !== $result ? $result : 'Array';
+            return $this->encodeJsonPretty($castData);
         }
 
         if (\is_object($castData)) {
@@ -423,5 +424,17 @@ final class ValueCrudController extends AbstractCrudController
         }
 
         return \is_scalar($castData) ? (string) $castData : '';
+    }
+
+    /**
+     * 将数组编码为格式化的 JSON 字符串.
+     *
+     * @param array<mixed> $data
+     */
+    private function encodeJsonPretty(array $data): string
+    {
+        $json = json_encode($data, \JSON_PRETTY_PRINT | \JSON_UNESCAPED_UNICODE);
+
+        return false !== $json ? $json : '[]';
     }
 }

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Controller;
+namespace Tourze\CmsBundle\Tests\Controller;
 
-use CmsBundle\Controller\SqlController;
-use CmsBundle\Entity\Model;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Tourze\CmsBundle\Controller\SqlController;
+use Tourze\CmsBundle\Entity\Model;
 use Tourze\PHPUnitSymfonyWebTest\AbstractWebTestCase;
 
 /**

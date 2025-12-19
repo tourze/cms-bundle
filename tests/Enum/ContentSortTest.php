@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Enum;
+namespace Tourze\CmsBundle\Tests\Enum;
 
-use CmsBundle\Enum\ContentSort;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\CmsBundle\Enum\ContentSort;
 use Tourze\PHPUnitEnum\AbstractEnumTestCase;
 
 /**

@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Controller\Admin;
+namespace Tourze\CmsBundle\Tests\Controller\Admin;
 
-use CmsBundle\Controller\Admin\EntityCrudController;
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
-use CmsBundle\Enum\EntityState;
-use CmsBundle\Tests\AbstractCmsControllerTestCase;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Tourze\CmsBundle\Controller\Admin\EntityCrudController;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Enum\EntityState;
+use Tourze\CmsBundle\Tests\AbstractCmsControllerTestCase;
 
 /**
  * @internal
@@ -45,7 +45,7 @@ final class EntityCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testCrudConfiguration(): void
     {
-        $controller = new EntityCrudController();
+        $controller = self::getService(EntityCrudController::class);
         $this->assertInstanceOf(EntityCrudController::class, $controller);
     }
 
@@ -238,7 +238,7 @@ final class EntityCrudControllerTest extends AbstractCmsControllerTestCase
         $this->assertNull($deletedEntity, 'Entity should be deleted');
 
         // 验证控制器方法存在
-        $controller = new EntityCrudController();
+        $controller = self::getService(EntityCrudController::class);
         $reflection = new \ReflectionClass($controller);
         $this->assertTrue($reflection->hasMethod('deleteEntity'), 'EntityCrudController should have deleteEntity method');
     }
@@ -360,13 +360,8 @@ final class EntityCrudControllerTest extends AbstractCmsControllerTestCase
             return $this->cachedController;
         }
 
-        // 确保创建客户端（会自动设置为全局客户端）
-        $client = static::createClient();
-        $container = $client->getContainer();
-        $adminUrlGenerator = $container->get(\EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator::class);
-        $this->assertInstanceOf(\EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator::class, $adminUrlGenerator);
-
-        $this->cachedController = new EntityCrudController();
+        // 从容器中获取服务，而不是直接实例化
+        $this->cachedController = self::getService(EntityCrudController::class);
 
         return $this->cachedController;
     }

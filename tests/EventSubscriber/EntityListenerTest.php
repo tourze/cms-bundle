@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\EventSubscriber;
+namespace Tourze\CmsBundle\Tests\EventSubscriber;
 
-use CmsBundle\EventSubscriber\EntityListener;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\CmsBundle\EventSubscriber\EntityListener;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
 /**

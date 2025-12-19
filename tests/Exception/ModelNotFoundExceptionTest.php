@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Exception;
+namespace Tourze\CmsBundle\Tests\Exception;
 
-use CmsBundle\Exception\ModelNotFoundException;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\CmsBundle\Exception\ModelNotFoundException;
 use Tourze\PHPUnitBase\AbstractExceptionTestCase;
 
 /**

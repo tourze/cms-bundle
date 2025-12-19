@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Twig;
+namespace Tourze\CmsBundle\Tests\Twig;
 
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
-use CmsBundle\Enum\EntityState;
-use CmsBundle\Exception\ModelNotFoundException;
-use CmsBundle\Twig\CmsExtension;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Enum\EntityState;
+use Tourze\CmsBundle\Exception\ModelNotFoundException;
+use Tourze\CmsBundle\Twig\CmsExtension;
 use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 use Twig\Attribute\AsTwigFunction;
 

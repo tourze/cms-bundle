@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Service;
+namespace Tourze\CmsBundle\Tests\Service;
 
-use CmsBundle\Service\AdminMenu;
 use Knp\Menu\ItemInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\CmsBundle\Service\AdminMenu;
 use Tourze\EasyAdminMenuBundle\Service\LinkGeneratorInterface;
 use Tourze\PHPUnitSymfonyWebTest\AbstractEasyAdminMenuTestCase;
 

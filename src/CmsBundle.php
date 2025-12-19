@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle;
+namespace Tourze\CmsBundle;
 
 use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
 use Knp\Bundle\PaginatorBundle\KnpPaginatorBundle;
@@ -10,8 +10,6 @@ use Symfony\Bundle\SecurityBundle\SecurityBundle;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Tourze\BundleDependency\BundleDependencyInterface;
 use Tourze\CatalogBundle\CatalogBundle;
-use Tourze\CmsCollectBundle\CmsCollectBundle;
-use Tourze\CmsLikeBundle\CmsLikeBundle;
 use Tourze\DoctrineAsyncInsertBundle\DoctrineAsyncInsertBundle;
 use Tourze\DoctrineIndexedBundle\DoctrineIndexedBundle;
 use Tourze\DoctrineSnowflakeBundle\DoctrineSnowflakeBundle;
@@ -26,7 +24,7 @@ use Tourze\LockServiceBundle\LockServiceBundle;
 use Tourze\RoutingAutoLoaderBundle\RoutingAutoLoaderBundle;
 use Tourze\TagManageBundle\TagManageBundle;
 
-class CmsBundle extends Bundle implements BundleDependencyInterface
+final class CmsBundle extends Bundle implements BundleDependencyInterface
 {
     public static function getBundleDependencies(): array
     {

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\DependencyInjection;
+namespace Tourze\CmsBundle\Tests\DependencyInjection;
 
-use CmsBundle\DependencyInjection\CmsExtension;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\CmsBundle\DependencyInjection\CmsExtension;
 use Tourze\PHPUnitSymfonyUnitTest\AbstractDependencyInjectionExtensionTestCase;
 
 /**

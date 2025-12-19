@@ -2,20 +2,18 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Entity;
+namespace Tourze\CmsBundle\Entity;
 
-use CmsBundle\Enum\EntityState;
-use CmsBundle\Repository\EntityRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
-use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\Arrayable\AdminArrayInterface;
 use Tourze\CatalogBundle\Entity\Catalog;
-use Tourze\CmsCollectBundle\Entity\CollectLog;
+use Tourze\CmsBundle\Enum\EntityState;
+use Tourze\CmsBundle\Repository\EntityRepository;
 use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
@@ -96,13 +94,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     #[ORM\Column(type: Types::INTEGER, nullable: true, options: ['comment' => '排序'])]
     private ?int $sortNumber = null;
 
-    /**
-     * @var Collection<int, CollectLog>
-     */
-    #[Ignore]
-    #[ORM\OneToMany(mappedBy: 'entity', targetEntity: CollectLog::class, fetch: 'EXTRA_LAZY', orphanRemoval: true)]
-    private Collection $collectLogs;
-
     #[Groups(groups: ['admin_curd'])]
     #[Assert\Length(max: 100)]
     #[ORM\Column(type: Types::STRING, length: 100, nullable: true, options: ['comment' => '备注'])]
@@ -113,7 +104,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
         $this->catalogs = new ArrayCollection();
         $this->tags = new ArrayCollection();
         $this->valueList = new ArrayCollection();
-        $this->collectLogs = new ArrayCollection();
     }
 
     public function __toString(): string
@@ -244,32 +234,6 @@ class Entity implements \Stringable, AdminArrayInterface, LockEntity
     public function setSortNumber(?int $sortNumber): void
     {
         $this->sortNumber = $sortNumber;
-    }
-
-    /**
-     * @return Collection<int, CollectLog>
-     */
-    public function getCollectLogs(): Collection
-    {
-        return $this->collectLogs;
-    }
-
-    public function addCollectLog(CollectLog $collectLog): void
-    {
-        if (!$this->collectLogs->contains($collectLog)) {
-            $this->collectLogs->add($collectLog);
-            $collectLog->setEntity($this);
-        }
-    }
-
-    public function removeCollectLog(CollectLog $collectLog): void
-    {
-        if ($this->collectLogs->removeElement($collectLog)) {
-            // set the owning side to null (unless already changed)
-            if ($collectLog->getEntity() === $this) {
-                $collectLog->setEntity(null);
-            }
-        }
     }
 
     /**

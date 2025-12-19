@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Entity;
+namespace Tourze\CmsBundle\Tests\Entity;
 
-use CmsBundle\Entity\Attribute;
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\CmsBundle\Entity\Attribute;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Model;
 use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
 /**

@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Controller\Admin;
+namespace Tourze\CmsBundle\Controller\Admin;
 
-use CmsBundle\Entity\Entity;
-use CmsBundle\Enum\EntityState;
 use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
@@ -25,6 +23,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Enum\EntityState;
 use Tourze\TagManageBundle\Controller\Admin\TagCrudController;
 
 /**

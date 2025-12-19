@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\DataFixtures;
+namespace Tourze\CmsBundle\DataFixtures;
 
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
-use CmsBundle\Enum\EntityState;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\DependencyInjection\Attribute\When;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Enum\EntityState;
 
 #[When(env: 'test')]
 #[When(env: 'dev')]
-class EntityFixtures extends Fixture implements DependentFixtureInterface
+final class EntityFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
     {

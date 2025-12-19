@@ -2,13 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\DependencyInjection;
+namespace Tourze\CmsBundle\DependencyInjection;
 
-use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Tourze\SymfonyDependencyServiceLoader\AutoExtension;
 
-#[Autoconfigure(public: true)]
-class CmsExtension extends AutoExtension
+final class CmsExtension extends AutoExtension
 {
     public function getAlias(): string
     {

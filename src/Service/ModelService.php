@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Service;
+namespace Tourze\CmsBundle\Service;
 
-use CmsBundle\Entity\Model;
-use CmsBundle\Repository\ModelRepository;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Repository\ModelRepository;
 
 /**
  * 模型服务类.

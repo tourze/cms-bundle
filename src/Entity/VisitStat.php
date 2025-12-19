@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Entity;
+namespace Tourze\CmsBundle\Entity;
 
-use CmsBundle\Repository\VisitStatRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use Tourze\CmsBundle\Repository\VisitStatRepository;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;

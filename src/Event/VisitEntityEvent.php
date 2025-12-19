@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Event;
+namespace Tourze\CmsBundle\Event;
 
-use CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Entity;
 use Tourze\UserEventBundle\Event\UserInteractionEvent;
 
-class VisitEntityEvent extends UserInteractionEvent
+final class VisitEntityEvent extends UserInteractionEvent
 {
     private Entity $entity;
 

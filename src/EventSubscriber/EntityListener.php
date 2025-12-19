@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\EventSubscriber;
+namespace Tourze\CmsBundle\EventSubscriber;
 
 use Carbon\CarbonImmutable;
-use CmsBundle\Entity\Entity;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsEntityListener;
 use Doctrine\ORM\Events;
+use Tourze\CmsBundle\Entity\Entity;
 
 #[AsEntityListener(event: Events::prePersist, method: 'prePersist', entity: Entity::class)]
 #[AsEntityListener(event: Events::preUpdate, method: 'preUpdate', entity: Entity::class)]
-class EntityListener
+final class EntityListener
 {
     public function prePersist(Entity $object): void
     {

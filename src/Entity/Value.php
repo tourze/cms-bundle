@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Entity;
+namespace Tourze\CmsBundle\Entity;
 
-use CmsBundle\Enum\FieldType;
-use CmsBundle\Repository\ValueRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Validator\Constraints as Assert;
+use Tourze\CmsBundle\Enum\FieldType;
+use Tourze\CmsBundle\Repository\ValueRepository;
 use Tourze\DoctrineIpBundle\Traits\IpTraceableAware;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;

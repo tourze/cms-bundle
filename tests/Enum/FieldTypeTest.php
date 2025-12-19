@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Enum;
+namespace Tourze\CmsBundle\Tests\Enum;
 
-use CmsBundle\Entity\Attribute;
-use CmsBundle\Enum\FieldType;
 use PHPUnit\Framework\Attributes\CoversClass;
+use Tourze\CmsBundle\Entity\Attribute;
+use Tourze\CmsBundle\Enum\FieldType;
 use Tourze\PHPUnitEnum\AbstractEnumTestCase;
 
 /**

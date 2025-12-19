@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Service;
+namespace Tourze\CmsBundle\Service;
 
-use CmsBundle\Repository\ValueRepository;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Tourze\CmsBundle\Repository\ValueRepository;
 
 /**
  * Value 服务类.

@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Controller\Admin;
+namespace Tourze\CmsBundle\Controller\Admin;
 
-use CmsBundle\Entity\VisitStat;
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
@@ -19,6 +18,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\NumericFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
+use Tourze\CmsBundle\Entity\VisitStat;
 
 /**
  * 访问统计管理控制器.

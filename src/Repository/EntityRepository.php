@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Repository;
+namespace Tourze\CmsBundle\Repository;
 
-use CmsBundle\Entity\Entity;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Tourze\CmsBundle\Entity\Entity;
 use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 
 /**
  * @extends ServiceEntityRepository<Entity>
  */
 #[AsRepository(entityClass: Entity::class)]
-class EntityRepository extends ServiceEntityRepository
+final class EntityRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

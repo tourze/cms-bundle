@@ -2,21 +2,20 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Tests\Controller\Admin;
+namespace Tourze\CmsBundle\Tests\Controller\Admin;
 
-use CmsBundle\Controller\Admin\ValueCrudController;
-use CmsBundle\Entity\Attribute;
-use CmsBundle\Entity\Entity;
-use CmsBundle\Entity\Model;
-use CmsBundle\Entity\Value;
-use CmsBundle\Enum\EntityState;
-use CmsBundle\Enum\FieldType;
-use CmsBundle\Tests\AbstractCmsControllerTestCase;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
-use EasyCorp\Bundle\EasyAdminBundle\Router\AdminUrlGenerator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Tourze\CmsBundle\Controller\Admin\ValueCrudController;
+use Tourze\CmsBundle\Entity\Attribute;
+use Tourze\CmsBundle\Entity\Entity;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Entity\Value;
+use Tourze\CmsBundle\Enum\EntityState;
+use Tourze\CmsBundle\Enum\FieldType;
+use Tourze\CmsBundle\Tests\AbstractCmsControllerTestCase;
 
 /**
  * @internal
@@ -49,12 +48,7 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
 
     public function testCrudConfiguration(): void
     {
-        $client = self::createClientWithDatabase();
-        $container = $client->getContainer();
-        $adminUrlGenerator = $container->get(AdminUrlGenerator::class);
-        $this->assertInstanceOf(AdminUrlGenerator::class, $adminUrlGenerator);
-
-        $controller = new ValueCrudController($adminUrlGenerator);
+        $controller = self::getService(ValueCrudController::class);
         $this->assertInstanceOf(ValueCrudController::class, $controller);
     }
 
@@ -451,13 +445,8 @@ final class ValueCrudControllerTest extends AbstractCmsControllerTestCase
             return $this->cachedController;
         }
 
-        // 确保创建客户端（会自动设置为全局客户端）
-        $client = static::createClient();
-        $container = $client->getContainer();
-        $adminUrlGenerator = $container->get(AdminUrlGenerator::class);
-        self::assertInstanceOf(AdminUrlGenerator::class, $adminUrlGenerator);
-
-        $this->cachedController = new ValueCrudController($adminUrlGenerator);
+        // 从容器中获取服务，而不是直接实例化
+        $this->cachedController = self::getService(ValueCrudController::class);
 
         return $this->cachedController;
     }

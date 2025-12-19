@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\Enum;
+namespace Tourze\CmsBundle\Enum;
 
-use CmsBundle\Entity\Attribute;
+use Tourze\CmsBundle\Entity\Attribute;
 use Tourze\EnumExtra\Itemable;
 use Tourze\EnumExtra\ItemTrait;
 use Tourze\EnumExtra\Labelable;

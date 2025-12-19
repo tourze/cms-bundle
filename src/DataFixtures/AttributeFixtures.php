@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace CmsBundle\DataFixtures;
+namespace Tourze\CmsBundle\DataFixtures;
 
-use CmsBundle\Entity\Attribute;
-use CmsBundle\Entity\Model;
-use CmsBundle\Enum\FieldType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\DependencyInjection\Attribute\When;
+use Tourze\CmsBundle\Entity\Attribute;
+use Tourze\CmsBundle\Entity\Model;
+use Tourze\CmsBundle\Enum\FieldType;
 
 #[When(env: 'test')]
 #[When(env: 'dev')]
-class AttributeFixtures extends Fixture implements DependentFixtureInterface
+final class AttributeFixtures extends Fixture implements DependentFixtureInterface
 {
     public const ATTRIBUTE_CONTENT_REFERENCE = 'attribute-content';
 
